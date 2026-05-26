@@ -1,0 +1,24 @@
+# Docker Compose — dev overrides: volumes hot-reload, DEBUG=true
+services:
+  backend:
+    environment:
+      DEBUG: "true"
+      DJANGO_SETTINGS_MODULE: config.settings.development
+    volumes:
+      - ./backend:/app
+
+  celery-worker:
+    volumes:
+      - ./backend:/app
+
+  celery-beat:
+    volumes:
+      - ./backend:/app
+
+  frontend:
+    environment:
+      DEBUG: "true"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next

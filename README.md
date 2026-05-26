@@ -1,2 +1,85 @@
-# api-atenciones
-Módulo de Atenciones de solicitudes para la plataforma de ServiPlus S.A., implementado con arquitectura orientada a microservicios según las especificaciones del Documento de Arquitectura de Software (DAS) e ISO/IEC 25010.
+# ServiPlus Atenciones
+
+Módulo de Atenciones de solicitudes para la plataforma ServiPlus S.A., implementado con arquitectura en capas según el DAS (Django + DRF + Celery + Next.js).
+
+## Requisitos
+
+- Docker Compose 2.27+
+- Python 3.12+ (desarrollo local sin Docker)
+- Node.js 20+ (frontend)
+
+## Setup local
+
+```bash
+cp .env.example .env
+# Editar .env con credenciales reales
+
+docker compose up --build
+```
+
+Backend: http://localhost:8000  
+Swagger: http://localhost:8000/api/schema/swagger-ui/  
+Frontend: http://localhost:3000
+
+### Migraciones (puerto 5432 directo)
+
+Las migraciones deben ejecutarse contra `DATABASE_URL_DIRECT` (puerto 5432), no contra el pooler (6543):
+
+```bash
+cd backend
+export DATABASE_URL=$DATABASE_URL_DIRECT
+export DJANGO_SETTINGS_MODULE=config.settings.development
+python manage.py migrate
+python manage.py seed_estados
+```
+
+### Tests backend
+
+```bash
+cd backend
+pip install -r requirements.txt -r requirements-dev.txt
+pytest
+```
+
+### Tests frontend
+
+```bash
+cd frontend
+npm install
+npm test
+npm run test:e2e
+```
+
+## Decisiones arquitectónicas
+
+| Capa | Patrón | Tecnología |
+|------|--------|------------|
+| View | Orquestación | DRF APIView |
+| Application | Serializers puros | DRF Serializer |
+| Logic | Service Layer | Python + `@transaction.atomic` |
+| Data Access | Repository + DTO | Django ORM |
+| Async | Producer-Consumer | Celery 5.4 + Redis |
+| Integration | Circuit Breaker | HTTP clients con fallback |
+| Security | RBAC + Audit append-only | SimpleJWT + AuditLog |
+
+## Known limitations
+
+### CONCERN-02 — Notificaciones sin SSE
+
+El frontend usa **polling cada 30s** (`useNotificaciones`) porque SSE no es compatible con despliegue stateless multi-instancia sin sticky sessions. TTL de caché en Redis: 30s. Ruta de upgrade documentada: Redis Pub/Sub + WebSocket gateway.
+
+### CONCERN-03 — Archival audit_log
+
+Registros de `audit_log` > 6 meses se exportan a CSV+gzip en Supabase Storage y luego se eliminan. Tarea programada: Celery Beat `archival_audit_log` (día 1 de cada mes, 02:00 UTC).
+
+### CONCERN-09 — Producción
+
+`ALLOWED_HOSTS`, `CONN_MAX_AGE=0`, `DATABASE_URL` puerto 6543, `sslmode=require`, HSTS y cookies seguras configurados en `config/settings/production.py`.
+
+## Estructura
+
+```
+backend/          # Django + DRF
+frontend/         # Next.js 14 App Router
+docker-compose.yml
+```

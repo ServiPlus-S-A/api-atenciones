@@ -1,0 +1,9 @@
+__pycache__
+.env
+tests/
+.git
+*.pyc
+htmlcov/
+.pytest_cache
+.coverage
+*.egg-info

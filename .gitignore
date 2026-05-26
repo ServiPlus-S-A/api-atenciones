@@ -216,3 +216,11 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ServiPlus Atenciones
+.env
+node_modules/
+.next/
+coverage/
+.DS_Store
+frontend/e2e/.auth/
