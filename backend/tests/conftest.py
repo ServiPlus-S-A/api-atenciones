@@ -3,19 +3,18 @@ import os
 import pytest
 from django.contrib.auth.models import User
 from rest_framework.test import APIClient
+from typing import Any, cast
 
 from atenciones.constants import Rol
-
-os.environ.setdefault("DATABASE_URL", "sqlite:///test_db.sqlite3")
 
 
 def _client_with_rol(rol: str) -> APIClient:
     user = User.objects.create_user(username=f"user_{rol.lower()}", password="testpass123")
-    user.rol = rol
-    client = APIClient()
+    setattr(user, "rol", rol or "Cliente")
+    client: Any = APIClient()
     client.force_authenticate(user=user)
-    client.test_user = user
-    return client
+    setattr(client, "test_user", user or f"Usuario con rol {rol}")
+    return cast(APIClient, client)
 
 
 @pytest.fixture

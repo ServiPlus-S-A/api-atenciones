@@ -10,9 +10,9 @@ def custom_exception_handler(exc, context):
 
     if isinstance(exc, BaseAtencionException):
         SecureLogger.registrar_fallo(
-            operacion="exception",
+            operation="exception",
             actor_id=getattr(context.get("request"), "user", None),
-            detalle=str(exc.detail),
+            detail=str(exc.detail),
             context=context,
         )
         return _build_response(
@@ -32,9 +32,9 @@ def custom_exception_handler(exc, context):
 
     if response is not None and response.data:
         SecureLogger.registrar_fallo(
-            operacion="exception",
+            operation="exception",
             actor_id=getattr(context.get("request"), "user", None),
-            detalle=str(response.data),
+            detail=str(response.data),
             context=context,
         )
 

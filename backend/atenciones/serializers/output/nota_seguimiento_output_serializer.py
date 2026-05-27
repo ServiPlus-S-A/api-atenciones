@@ -3,17 +3,21 @@ from rest_framework import serializers
 from atenciones.dtos.output.nota_seguimiento_dto import NotaSeguimientoDTO
 
 
-class NotaSeguimientoOutputSerializer(serializers.Serializer):
+class MonitoringNoteOutputSerializer(serializers.Serializer):
     id = serializers.IntegerField()
-    consultor_id = serializers.IntegerField()
-    contenido = serializers.CharField()
-    timestamp = serializers.DateTimeField()
+    consultant_id = serializers.IntegerField()
+    content = serializers.CharField()
+    created_at = serializers.DateTimeField()
 
     @classmethod
     def from_dto(cls, dto: NotaSeguimientoDTO) -> dict:
         return {
             "id": dto.id,
-            "consultor_id": dto.consultor_id,
-            "contenido": dto.contenido,
-            "timestamp": dto.timestamp,
+            "consultant_id": dto.consultant_id,
+            "content": dto.content,
+            "created_at": dto.created_at,
         }
+
+
+# Backwards compatibility alias
+NotaSeguimientoOutputSerializer = MonitoringNoteOutputSerializer

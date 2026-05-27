@@ -2,7 +2,7 @@ from django.core.cache import cache
 from django.db import transaction
 
 from atenciones.audit.audit_service import AuditService
-from atenciones.constants import EstadoAtencion, Rol, TTL_CACHE_LISTADO
+from atenciones.constants import EstadoAtencion, Rol, TTL_LISTED_CACHE
 from atenciones.dtos.input.anular_atencion_input_dto import AnularAtencionInputDTO
 from atenciones.dtos.input.crear_atencion_input_dto import CrearAtencionInputDTO
 from atenciones.dtos.input.finalizar_atencion_input_dto import FinalizarAtencionInputDTO
@@ -174,7 +174,7 @@ class AtencionService:
 
         result = AtencionRepository.listar(filtros, estados_excluidos)
         if not filtros:
-            cache.set(key, result, TTL_CACHE_LISTADO)
+            cache.set(key, result, TTL_LISTED_CACHE)
         return result
 
     @classmethod
