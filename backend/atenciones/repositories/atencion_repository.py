@@ -120,5 +120,7 @@ class AtencionRepository:
         for a in qs.prefetch_related("consultores_rel"):
             for rel in a.consultores_rel.all():
                 if rel.consultor_id in consultor_ids:
+                    if a.fecha_programada is None or a.fecha_fin is None:
+                        continue
                     result.append((rel.consultor_id, a.fecha_programada, a.fecha_fin))
         return result

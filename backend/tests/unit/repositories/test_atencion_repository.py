@@ -1,6 +1,6 @@
 import pytest
 
-from atenciones.constants import EstadoAtencion, Rol
+from atenciones.constants import EstadoAtencion
 from atenciones.repositories.atencion_repository import AtencionRepository
 from tests.factories.atencion_factory import AtencionAnuladaFactory, AtencionFactory
 

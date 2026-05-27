@@ -162,10 +162,10 @@ class AtencionService:
         rol = getattr(user, "rol", Rol.CLIENTE)
         estados_excluidos = None
         if rol == Rol.CONSULTOR:
-            estados_excluidos = [EstadoAtencion.ANULADA]
+            estados_excluidos = [EstadoAtencion.ANULADA.value]
             filtros = {**filtros, "consultor_id": user.id}
         elif rol == Rol.CLIENTE:
-            estados_excluidos = [EstadoAtencion.ANULADA]
+            estados_excluidos = [EstadoAtencion.ANULADA.value]
 
         key = _cache_key(user.id, rol)
         cached = cache.get(key)

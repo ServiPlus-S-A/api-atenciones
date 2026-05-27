@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from atenciones.constants import ERR_ANTICIPACION, TRANSICIONES_VALIDAS, EstadoAtencion
+from atenciones.constants import ERR_ANTICIPACION, TRANSICIONES_VALIDAS
 from atenciones.exceptions.custom_exceptions import (
     AnticipacionInsuficiente,
     CruceHorarioException,
