@@ -1,6 +1,17 @@
-from atenciones.models.atencion import Atencion
-from atenciones.models.atencion_consultor import AtencionConsultor
-from atenciones.models.audit_log import AuditLog
-from atenciones.models.nota_seguimiento import NotaSeguimiento
+from .atention import Atention
+from .atention_cosultor import AtentionConsultant, AtencionConsultor
+from .monitoring_note import MonitoringNote, NotaSeguimiento
+from .audit_log import AuditLog
 
-__all__ = ["Atencion", "AtencionConsultor", "NotaSeguimiento", "AuditLog"]
+# Backwards compatibility alias (temporary)
+Atencion = Atention
+
+__all__ = [
+	"Atention",
+	"Atencion",
+	"AtentionConsultant",
+	"AtencionConsultor",
+	"MonitoringNote",
+	"NotaSeguimiento",
+	"AuditLog",
+]

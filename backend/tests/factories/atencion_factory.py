@@ -9,16 +9,16 @@ class AtencionFactory(DjangoModelFactory):
     class Meta:
         model = Atencion
 
-    estado = EstadoAtencion.AGENDADA
-    solicitud_id = factory.Sequence(lambda n: n + 1)
-    creado_por_id = 1
+    status = EstadoAtencion.AGENDADA
+    request_id = factory.Sequence(lambda n: n + 1)
+    created_by = 1
 
 
 class AtencionFinalizadaFactory(AtencionFactory):
-    estado = EstadoAtencion.FINALIZADA
-    notas_finales = "Notas finales de prueba con más de veinte caracteres."
+    status = EstadoAtencion.FINALIZADA
+    final_note = "Notas finales de prueba con más de veinte caracteres."
 
 
 class AtencionAnuladaFactory(AtencionFactory):
-    estado = EstadoAtencion.ANULADA
-    motivo_anulacion = "Motivo de anulación de prueba válido."
+    status = EstadoAtencion.ANULADA
+    cancellation_reason = "Motivo de anulación de prueba válido."

@@ -1,0 +1,11 @@
+[importlinter]
+root_packages = atenciones
+
+[importlinter:contract:layers]
+name = Arquitectura por capas de atenciones
+type = layers
+layers =
+    atenciones.views
+    atenciones.services
+    atenciones.repositories
+    atenciones.models

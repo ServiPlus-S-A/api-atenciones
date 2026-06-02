@@ -9,7 +9,7 @@ from atenciones.dtos.input.finalizar_atencion_input_dto import FinalizarAtencion
 from atenciones.dtos.input.programar_atencion_input_dto import ProgramarAtencionInputDTO
 from atenciones.dtos.output.atencion_dto import AtencionDTO
 from atenciones.exceptions.custom_exceptions import AtencionNoEncontrada
-from atenciones.models import Atencion, AtencionConsultor, NotaSeguimiento
+from atenciones.models import Atention, AtentionConsultant, MonitoringNote
 
 
 class AtencionRepository:
@@ -17,8 +17,8 @@ class AtencionRepository:
 
     @staticmethod
     def _base_qs():
-        return Atencion.objects.prefetch_related(
-            Prefetch("consultores_rel", queryset=AtencionConsultor.objects.all()),
+        return Atention.objects.prefetch_related(
+            Prefetch("consultants_rel", queryset=AtentionConsultant.objects.all()),
         )
 
     @classmethod
@@ -37,66 +37,66 @@ class AtencionRepository:
     ) -> list[AtencionDTO]:
         qs = cls._base_qs()
         if estados_excluidos:
-            qs = qs.exclude(estado__in=estados_excluidos)
+            qs = qs.exclude(status__in=estados_excluidos)
         if estado := filtros.get("estado"):
-            qs = qs.filter(estado=estado)
-        if solicitud_id := filtros.get("solicitud_id"):
-            qs = qs.filter(solicitud_id=solicitud_id)
+            qs = qs.filter(status=estado)
+        if request_id := filtros.get("request_id"):
+            qs = qs.filter(request_id=request_id)
         if fecha_inicio := filtros.get("fecha_inicio"):
-            qs = qs.filter(fecha_programada__date__gte=fecha_inicio)
+            qs = qs.filter(scheduled_date__date__gte=fecha_inicio)
         if fecha_fin := filtros.get("fecha_fin"):
-            qs = qs.filter(fecha_programada__date__lte=fecha_fin)
-        if consultor_id := filtros.get("consultor_id"):
-            qs = qs.filter(consultores_rel__consultor_id=consultor_id)
+            qs = qs.filter(scheduled_date__date__lte=fecha_fin)
+        if consultant_id := filtros.get("consultor_id"):
+            qs = qs.filter(consultants_rel__consultant_id=consultant_id)
         return [AtencionDTO.from_orm(a) for a in qs.distinct()]
 
     @classmethod
     def guardar(cls, input_dto: CrearAtencionInputDTO) -> AtencionDTO:
-        atencion = Atencion.objects.create(
-            solicitud_id=input_dto.solicitud_id,
-            creado_por_id=input_dto.creado_por_id,
-            estado=EstadoAtencion.AGENDADA,
+        atention = Atention.objects.create(
+            request_id=input_dto.solicitud_id,
+            created_by=input_dto.creado_por_id,
+            status=EstadoAtencion.AGENDADA,
         )
         for i, consultor_id in enumerate(input_dto.consultor_ids):
-            AtencionConsultor.objects.create(
-                atencion=atencion,
-                consultor_id=consultor_id,
-                es_lider=(i == 0),
+            AtentionConsultant.objects.create(
+                atention=atention,
+                consultant_id=consultor_id,
+                is_leader=(i == 0),
             )
         if input_dto.mensaje_preliminar:
-            NotaSeguimiento.objects.create(
-                atencion=atencion,
-                consultor_id=input_dto.creado_por_id,
-                contenido=input_dto.mensaje_preliminar,
+            MonitoringNote.objects.create(
+                atention=atention,
+                consultant_id=input_dto.creado_por_id,
+                content=input_dto.mensaje_preliminar,
             )
-        return AtencionDTO.from_orm(cls._base_qs().get(pk=atencion.pk))
+        return AtencionDTO.from_orm(cls._base_qs().get(pk=atention.pk))
 
     @classmethod
     def programar(cls, input_dto: ProgramarAtencionInputDTO) -> AtencionDTO:
-        atencion = Atencion.objects.get(pk=input_dto.atencion_id)
-        atencion.fecha_programada = input_dto.fecha_programada
-        atencion.fecha_fin = input_dto.fecha_fin
-        atencion.save(update_fields=["fecha_programada", "fecha_fin", "updated_at"])
-        return AtencionDTO.from_orm(cls._base_qs().get(pk=atencion.pk))
+        atention = Atention.objects.get(pk=input_dto.atencion_id)
+        atention.scheduled_date = input_dto.fecha_programada
+        atention.closing_date = input_dto.fecha_fin
+        atention.save(update_fields=["scheduled_date", "closing_date", "updated_at"])
+        return AtencionDTO.from_orm(cls._base_qs().get(pk=atention.pk))
 
     @classmethod
     def finalizar(cls, input_dto: FinalizarAtencionInputDTO) -> AtencionDTO:
-        atencion = Atencion.objects.get(pk=input_dto.atencion_id)
-        atencion.estado = EstadoAtencion.FINALIZADA
-        atencion.notas_finales = input_dto.notas_finales
-        atencion.fecha_cierre = datetime.now(tz=atencion.created_at.tzinfo)
-        atencion.save(
-            update_fields=["estado", "notas_finales", "fecha_cierre", "updated_at"],
+        atention = Atention.objects.get(pk=input_dto.atencion_id)
+        atention.status = EstadoAtencion.FINALIZADA
+        atention.final_note = input_dto.notas_finales
+        atention.closing_date = datetime.now(tz=atention.created_at.tzinfo)
+        atention.save(
+            update_fields=["status", "final_note", "closing_date", "updated_at"],
         )
-        return AtencionDTO.from_orm(cls._base_qs().get(pk=atencion.pk))
+        return AtencionDTO.from_orm(cls._base_qs().get(pk=atention.pk))
 
     @classmethod
     def anular(cls, input_dto: AnularAtencionInputDTO) -> AtencionDTO:
-        atencion = Atencion.objects.get(pk=input_dto.atencion_id)
-        atencion.estado = EstadoAtencion.ANULADA
-        atencion.motivo_anulacion = input_dto.motivo_anulacion
-        atencion.save(update_fields=["estado", "motivo_anulacion", "updated_at"])
-        return AtencionDTO.from_orm(cls._base_qs().get(pk=atencion.pk))
+        atention = Atention.objects.get(pk=input_dto.atencion_id)
+        atention.status = EstadoAtencion.ANULADA
+        atention.cancellation_reason = input_dto.motivo_anulacion
+        atention.save(update_fields=["status", "cancellation_reason", "updated_at"])
+        return AtencionDTO.from_orm(cls._base_qs().get(pk=atention.pk))
 
     @classmethod
     def buscar_cruces(
@@ -106,19 +106,21 @@ class AtencionRepository:
         fecha_fin: datetime,
         excluir_atencion_id: int | None = None,
     ) -> list[tuple[int, datetime, datetime]]:
-        qs = Atencion.objects.filter(
-            consultores_rel__consultor_id__in=consultor_ids,
-            fecha_programada__isnull=False,
-            fecha_fin__isnull=False,
-        ).exclude(estado=EstadoAtencion.ANULADA)
+        qs = Atention.objects.filter(
+            consultants_rel__consultant_id__in=consultor_ids,
+            scheduled_date__isnull=False,
+            closing_date__isnull=False,
+        ).exclude(status=EstadoAtencion.ANULADA)
         if excluir_atencion_id:
             qs = qs.exclude(pk=excluir_atencion_id)
         qs = qs.filter(
-            Q(fecha_programada__lt=fecha_fin) & Q(fecha_fin__gt=fecha_inicio),
+            Q(scheduled_date__lt=fecha_fin) & Q(closing_date__gt=fecha_inicio),
         )
         result = []
-        for a in qs.prefetch_related("consultores_rel"):
-            for rel in a.consultores_rel.all():
-                if rel.consultor_id in consultor_ids:
-                    result.append((rel.consultor_id, a.fecha_programada, a.fecha_fin))
+        for a in qs.prefetch_related("consultants_rel"):
+            for rel in a.consultants_rel.all():
+                if rel.consultant_id in consultor_ids:
+                    if a.scheduled_date is None or a.closing_date is None:
+                        continue
+                    result.append((rel.consultant_id, a.scheduled_date, a.closing_date))
         return result

@@ -18,7 +18,7 @@ def test_hash_sha256_determinista():
 def test_registro_append_only_sin_update():
     log = AuditService.registrar("TEST", 1, "COORDINADOR", 1, {"x": 1}, "sub")
     assert AuditLog.objects.filter(pk=log.pk).exists()
-    updated = AuditLog.objects.filter(pk=log.pk).update(operacion="HACK")
+    updated = AuditLog.objects.filter(pk=log.pk).update(operation="HACK")
     assert updated == 0 or True  # puede variar según permisos DB en SQLite
 
 

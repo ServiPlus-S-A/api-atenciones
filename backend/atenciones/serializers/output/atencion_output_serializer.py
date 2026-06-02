@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
 from atenciones.dtos.output.atencion_dto import AtencionDTO
-from atenciones.dtos.output.consultor_ref_dto import ConsultorRefDTO
 
 
 class ConsultorRefOutputSerializer(serializers.Serializer):
