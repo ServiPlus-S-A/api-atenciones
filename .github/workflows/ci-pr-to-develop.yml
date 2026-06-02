@@ -35,6 +35,8 @@ jobs:
           mypy backend/atenciones backend/config backend/tests --explicit-package-bases
 
       - name: Pytest (coverage >= 80%)
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings.testing
         run: |
           cd backend
           PYTHONPATH=. pytest --cov=atenciones --cov-report=term-missing --cov-fail-under=80
