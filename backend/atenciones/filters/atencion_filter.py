@@ -1,6 +1,7 @@
 import django_filters
 
 from atenciones.constants import EstadoAtencion
+from atenciones.models import Atencion
 
 
 class AtencionFilterSet(django_filters.FilterSet):
@@ -13,6 +14,6 @@ class AtencionFilterSet(django_filters.FilterSet):
 
     @classmethod
     def parse_query_params(cls, query_params) -> dict:
-        fs = cls(data=query_params)
+        fs = cls(data=query_params, queryset=Atencion.objects.none())
         fs.is_valid()
         return fs.form.cleaned_data
