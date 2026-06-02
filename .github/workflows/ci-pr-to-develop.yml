@@ -1,0 +1,40 @@
+name: CI (PR to develop)
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  backend-quality:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Ruff (lint)
+        run: |
+          export PYTHONPATH=backend
+          ruff check backend/atenciones backend/config backend/tests
+
+      - name: Mypy (type check)
+        run: |
+          mypy backend/atenciones backend/config backend/tests --explicit-package-bases
+
+      - name: Pytest (coverage >= 80%)
+        run: |
+          cd backend
+          PYTHONPATH=. pytest --cov=atenciones --cov-report=term-missing --cov-fail-under=80
