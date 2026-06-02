@@ -25,7 +25,7 @@ class AtencionRepository:
     def obtener_por_id(cls, atencion_id: int) -> AtencionDTO:
         try:
             instancia = cls._base_qs().get(pk=atencion_id)
-        except Atencion.DoesNotExist:
+        except Atention.DoesNotExist:
             raise AtencionNoEncontrada()
         return AtencionDTO.from_orm(instancia)
 
