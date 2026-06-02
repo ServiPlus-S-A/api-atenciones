@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from atenciones.filters.atencion_filter import AtencionFilterSet
+from atenciones.filters.atencion_filter import AtencionFilterForm
 from atenciones.security.permissions import IsCoordinador, IsConsultor, IsOwnerConsultorOrCoordinador
 from atenciones.serializers.input.anular_atencion_input_serializer import AnularAtencionInputSerializer
 from atenciones.serializers.input.crear_atencion_input_serializer import CrearAtencionInputSerializer
@@ -34,7 +34,7 @@ class AtencionListCreateView(APIView):
     def get(self, request):
         ser = ListarAtencionInputSerializer(data=request.query_params)
         ser.is_valid(raise_exception=True)
-        filtros = AtencionFilterSet.parse_query_params(request.query_params)
+        filtros = AtencionFilterForm.parse_query_params(request.query_params)
         filtros = {k: v for k, v in filtros.items() if v is not None}
         items = AtencionService.listar_para_usuario(request.user, filtros)
         return Response(

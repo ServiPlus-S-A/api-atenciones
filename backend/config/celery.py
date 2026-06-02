@@ -2,8 +2,8 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-from celery import Celery
-from celery.schedules import crontab
+from celery import Celery  # noqa: E402
+from celery.schedules import crontab  # noqa: E402
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.development")
 

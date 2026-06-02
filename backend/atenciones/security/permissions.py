@@ -31,7 +31,7 @@ class IsOwnerConsultorOrCoordinador(BasePermission):
         if rol == Rol.CONSULTOR:
             atencion_id = obj.pk if isinstance(obj, Atencion) else getattr(obj, "atencion_id", obj.pk)
             return AtencionConsultor.objects.filter(
-                atencion_id=atencion_id,
-                consultor_id=request.user.id,
+                atention_id=atencion_id,
+                consultant_id=request.user.id,
             ).exists()
         return False
