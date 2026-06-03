@@ -88,6 +88,8 @@ docker-compose.yml
 
 ## Ruff (lint)
 
+Verificador y formateador de código ultra rápido. Detecta errores de estilo, imports no utilizados, variables no usadas y otros problemas comunes. Con `--fix` corrige automáticamente los problemas que puede resolver.
+
 Ejecutar desde la raiz del repo:
 
 ```powershell
@@ -98,8 +100,20 @@ ruff check backend/atenciones backend/config backend/tests --fix
 
 ## Mypy (type check)
 
+Verificador de tipos estático. Valida que las anotaciones de tipos sean correctas y detecta errores potenciales sin ejecutar el código. Ayuda a prevenir bugs relacionados con tipos.
+
 Ejecutar desde la raiz del repo:
 
 ```powershell
 mypy backend/atenciones backend/config backend/tests --explicit-package-bases
+```
+
+## Coverage
+
+Ejecuta los tests y genera un reporte de cobertura de código. Muestra qué porcentaje del código está siendo probado y qué líneas no tienen tests.
+
+Ejecutar desde el backend:
+
+```powershell
+$env:PYTHONPATH = "."; pytest --cov=atenciones --cov-report=term-missing
 ```
