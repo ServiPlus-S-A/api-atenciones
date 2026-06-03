@@ -1,3 +1,3 @@
-from atenciones.filters.atencion_filter import AtencionFilterSet
+from atenciones.filters.atencion_filter import AtencionFilterForm
 
-__all__ = ["AtencionFilterSet"]
+__all__ = ["AtencionFilterForm"]

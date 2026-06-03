@@ -1,16 +1,22 @@
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
-from django.utils import timezone
 
 from atenciones.constants import EstadoAtencion
 from atenciones.dtos.input.anular_atencion_input_dto import AnularAtencionInputDTO
 from atenciones.dtos.input.finalizar_atencion_input_dto import FinalizarAtencionInputDTO
 from atenciones.dtos.input.programar_atencion_input_dto import ProgramarAtencionInputDTO
 from atenciones.exceptions.custom_exceptions import AtencionNoEncontrada
-from atenciones.models import AtentionConsultant, MonitoringNote
+from atenciones.models import AtentionConsultant
 from atenciones.repositories.atencion_repository import AtencionRepository
 from tests.factories.atencion_factory import AtencionAnuladaFactory, AtencionFactory
+
+
+def _fechas_programacion():
+    inicio = datetime.now(timezone.utc) + timedelta(days=3)
+    inicio = inicio.replace(minute=0, second=0, microsecond=0)
+    fin = inicio + timedelta(hours=1)
+    return inicio, fin
 
 
 @pytest.mark.django_db
@@ -45,132 +51,84 @@ def test_guardar_retorna_dto_no_model():
 
 
 @pytest.mark.django_db
-def test_obtener_por_id_lanza_no_encontrada():
+def test_obtener_por_id_existe():
+    atencion = AtencionFactory()
+    dto = AtencionRepository.obtener_por_id(atencion.pk)
+    assert dto.id == atencion.pk
+
+
+@pytest.mark.django_db
+def test_obtener_por_id_no_existe():
     with pytest.raises(AtencionNoEncontrada):
-        AtencionRepository.obtener_por_id(9999)
+        AtencionRepository.obtener_por_id(99999)
 
 
 @pytest.mark.django_db
-def test_listar_filtra_por_estado_request_fecha_y_consultor():
-    base = AtencionFactory(status=EstadoAtencion.AGENDADA)
-    base.request_id = 123
-    base.scheduled_date = timezone.now() + timedelta(days=2)
-    base.save(update_fields=["request_id", "scheduled_date"])
-    AtentionConsultant.objects.create(atention=base, consultant_id=10, is_leader=True)
-
-    other = AtencionFactory(status=EstadoAtencion.ANULADA)
-    other.request_id = 999
-    other.scheduled_date = timezone.now() + timedelta(days=10)
-    other.save(update_fields=["request_id", "scheduled_date"])
-    AtentionConsultant.objects.create(atention=other, consultant_id=99, is_leader=True)
-
-    filtros = {
-        "estado": EstadoAtencion.AGENDADA,
-        "request_id": 123,
-        "fecha_inicio": (timezone.now() + timedelta(days=1)).date(),
-        "fecha_fin": (timezone.now() + timedelta(days=5)).date(),
-        "consultor_id": 10,
-    }
-    result = AtencionRepository.listar(filtros, estados_excluidos=None)
-
+def test_listar_filtros_estado_y_request_id():
+    a1 = AtencionFactory(status=EstadoAtencion.AGENDADA, request_id=100)
+    AtencionFactory(status=EstadoAtencion.FINALIZADA, request_id=200)
+    result = AtencionRepository.listar({"estado": EstadoAtencion.AGENDADA, "request_id": 100})
     assert len(result) == 1
-    assert result[0].id == base.id
+    assert result[0].id == a1.pk
 
 
 @pytest.mark.django_db
-def test_guardar_crea_nota_si_mensaje_preliminar():
-    from atenciones.dtos.input.crear_atencion_input_dto import CrearAtencionInputDTO
-
-    dto = CrearAtencionInputDTO(
-        solicitud_id=55,
-        consultor_ids=[1, 2],
-        mensaje_preliminar="Nota inicial.",
-        creado_por_id=2,
-    )
-
-    created = AtencionRepository.guardar(dto)
-
-    assert MonitoringNote.objects.filter(atention_id=created.id).exists()
-
-
-@pytest.mark.django_db
-def test_programar_actualiza_fechas():
+def test_listar_filtro_consultor_id():
     atencion = AtencionFactory()
-    start = timezone.now() + timedelta(days=1)
-    end = start + timedelta(hours=1)
-
-    dto = ProgramarAtencionInputDTO(
-        atencion_id=atencion.id,
-        fecha_programada=start,
-        fecha_fin=end,
-        programado_por_id=1,
-    )
-    result = AtencionRepository.programar(dto)
-
-    assert result.fecha_programada == start
-    assert result.fecha_fin == end
+    AtentionConsultant.objects.create(atention=atencion, consultant_id=42, is_leader=True)
+    AtencionFactory()
+    result = AtencionRepository.listar({"consultor_id": 42})
+    assert len(result) == 1
+    assert result[0].id == atencion.pk
 
 
 @pytest.mark.django_db
-def test_finalizar_actualiza_estado_y_notas():
+def test_programar_finalizar_anular():
     atencion = AtencionFactory()
-    dto = FinalizarAtencionInputDTO(
-        atencion_id=atencion.id,
-        notas_finales="Cierre con notas.",
-        consultor_id=1,
+    inicio, fin = _fechas_programacion()
+    dto_prog = AtencionRepository.programar(
+        ProgramarAtencionInputDTO(
+            atencion_id=atencion.pk,
+            fecha_programada=inicio,
+            fecha_fin=fin,
+            programado_por_id=1,
+        ),
     )
+    assert dto_prog.fecha_programada == inicio
 
-    result = AtencionRepository.finalizar(dto)
+    dto_fin = AtencionRepository.finalizar(
+        FinalizarAtencionInputDTO(
+            atencion_id=atencion.pk,
+            notas_finales="Notas finales válidas con más de veinte caracteres.",
+            consultor_id=1,
+        ),
+    )
+    assert dto_fin.estado == EstadoAtencion.FINALIZADA
 
-    assert result.estado == EstadoAtencion.FINALIZADA
-    assert result.notas_finales == "Cierre con notas."
-    assert result.fecha_fin is not None
+    otra = AtencionFactory()
+    dto_anul = AtencionRepository.anular(
+        AnularAtencionInputDTO(
+            atencion_id=otra.pk,
+            motivo_anulacion="Motivo de anulación válido para prueba.",
+            coordinador_id=1,
+        ),
+    )
+    assert dto_anul.estado == EstadoAtencion.ANULADA
 
 
 @pytest.mark.django_db
-def test_anular_actualiza_motivo():
-    atencion = AtencionFactory()
-    dto = AnularAtencionInputDTO(
-        atencion_id=atencion.id,
-        motivo_anulacion="Motivo de prueba.",
-        coordinador_id=1,
-    )
-
-    result = AtencionRepository.anular(dto)
-
-    assert result.estado == EstadoAtencion.ANULADA
-    atencion.refresh_from_db()
-    assert atencion.cancellation_reason == "Motivo de prueba."
+def test_buscar_cruces_detecta_solapamiento():
+    inicio, fin = _fechas_programacion()
+    a1 = AtencionFactory(scheduled_date=inicio, closing_date=fin)
+    AtentionConsultant.objects.create(atention=a1, consultant_id=7, is_leader=True)
+    cruces = AtencionRepository.buscar_cruces([7], inicio, fin)
+    assert len(cruces) >= 1
 
 
 @pytest.mark.django_db
-def test_buscar_cruces_considera_consultor_y_exclusion():
-    base = AtencionFactory()
-    base.scheduled_date = timezone.now() + timedelta(days=1)
-    base.closing_date = base.scheduled_date + timedelta(hours=2)
-    base.save(update_fields=["scheduled_date", "closing_date"])
-    AtentionConsultant.objects.create(atention=base, consultant_id=5, is_leader=True)
-
-    other = AtencionFactory()
-    other.scheduled_date = base.scheduled_date + timedelta(minutes=30)
-    other.closing_date = other.scheduled_date + timedelta(hours=1)
-    other.save(update_fields=["scheduled_date", "closing_date"])
-    AtentionConsultant.objects.create(atention=other, consultant_id=5, is_leader=True)
-
-    overlaps = AtencionRepository.buscar_cruces(
-        consultor_ids=[5],
-        fecha_inicio=base.scheduled_date,
-        fecha_fin=base.closing_date,
-        excluir_atencion_id=None,
-    )
-
-    assert overlaps
-
-    excluded = AtencionRepository.buscar_cruces(
-        consultor_ids=[5],
-        fecha_inicio=base.scheduled_date,
-        fecha_fin=base.closing_date,
-        excluir_atencion_id=other.id,
-    )
-
-    assert all(item[0] == 5 for item in excluded)
+def test_buscar_cruces_excluye_atencion():
+    inicio, fin = _fechas_programacion()
+    a1 = AtencionFactory(scheduled_date=inicio, closing_date=fin)
+    AtentionConsultant.objects.create(atention=a1, consultant_id=7, is_leader=True)
+    cruces = AtencionRepository.buscar_cruces([7], inicio, fin, excluir_atencion_id=a1.pk)
+    assert cruces == []

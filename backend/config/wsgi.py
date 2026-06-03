@@ -1,6 +1,8 @@
 import os
 from dotenv import load_dotenv
-from django.core.wsgi import get_wsgi_application
+load_dotenv()
+
+from django.core.wsgi import get_wsgi_application  # noqa: E402
 
 load_dotenv()
 
