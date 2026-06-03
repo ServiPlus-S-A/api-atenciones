@@ -115,6 +115,11 @@ jobs:
       - name: Migraciones
         run: python manage.py migrate --no-input
 
+      - name: Debug env
+        run: |
+              echo "DATABASE_URL=[$DATABASE_URL]"
+              env | grep DATABASE
+
       # ── Paso 4: pytest ───────────────────────────────────────
       - name: Tests (pytest)
         run: pytest

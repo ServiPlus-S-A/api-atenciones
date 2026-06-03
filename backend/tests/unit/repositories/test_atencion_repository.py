@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
 import pytest
-from django.utils import timezone
 
 from atenciones.constants import EstadoAtencion
 from atenciones.dtos.input.anular_atencion_input_dto import AnularAtencionInputDTO
