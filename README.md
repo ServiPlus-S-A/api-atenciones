@@ -93,7 +93,7 @@ Antes de ejecutar el proyecto, asegúrate de tener instalado y configurado:
 
 ### 1. Clonar el repositorio
 ```bash
-git clone <url-del-repo>
+git clone https://github.com/ServiPlus-S-A/api-atenciones.git serviplus-atenciones
 cd serviplus-atenciones
 ```
 
