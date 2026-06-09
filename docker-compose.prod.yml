@@ -1,0 +1,63 @@
+services:
+  backend:
+    image: suflanton/serviplus-atenciones-backend:latest
+    restart: always
+    ports:
+      - "8000:8000"
+    env_file: .env
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120
+    depends_on:
+      redis-broker:
+        condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-H", "X-Forwarded-Proto: https", "http://localhost:8000/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  redis-broker:
+    image: redis:7.2-alpine
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  celery-worker:
+    image: suflanton/serviplus-atenciones-backend:latest
+    restart: always
+    command: celery -A config worker --loglevel=info
+    env_file: .env
+    depends_on:
+      redis-broker:
+        condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+  celery-beat:
+    image: suflanton/serviplus-atenciones-backend:latest
+    restart: always
+    command: celery -A config beat --loglevel=info
+    env_file: .env
+    depends_on:
+      redis-broker:
+        condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
