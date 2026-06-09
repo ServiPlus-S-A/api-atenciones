@@ -53,3 +53,12 @@ class ServicioExternoNoDisponible(BaseAtencionException):
     status_code = status.HTTP_503_SERVICE_UNAVAILABLE
     default_code = "servicio_externo_no_disponible"
     default_detail = "Servicio externo no disponible."
+
+
+class ParametrosFiltroInvalidos(BaseAtencionException):
+    default_code = "parametros_filtro_invalidos"
+    default_detail = "Parámetros de filtro inválidos."
+
+    def __init__(self, field_errors: dict) -> None:
+        self.field_errors = field_errors
+        super().__init__(detail=self.default_detail)

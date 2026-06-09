@@ -224,3 +224,4 @@ node_modules/
 coverage/
 .DS_Store
 frontend/e2e/.auth/
+.secrets

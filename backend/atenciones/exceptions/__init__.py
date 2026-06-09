@@ -3,6 +3,7 @@ from atenciones.exceptions.custom_exceptions import (
     AtencionNoEncontrada,
     ConsultorNoDisponible,
     CruceHorarioException,
+    ParametrosFiltroInvalidos,
     ServicioExternoNoDisponible,
     SolicitudNoAutorizada,
     TransicionInvalidaException,
@@ -16,4 +17,5 @@ __all__ = [
     "AnticipacionInsuficiente",
     "CruceHorarioException",
     "ServicioExternoNoDisponible",
+    "ParametrosFiltroInvalidos",
 ]

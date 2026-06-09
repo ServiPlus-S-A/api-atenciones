@@ -19,6 +19,7 @@ def custom_exception_handler(exc, context):
             code=getattr(exc, "default_code", "error"),
             message=str(exc.detail),
             status_code=exc.status_code,
+            field_errors=getattr(exc, "field_errors", None),
         )
 
     if isinstance(exc, ValidationError):
