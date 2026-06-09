@@ -13,8 +13,7 @@ class HealthView(APIView):
     def get(self, request):
         checks = {
             "db": self._check_db(),
-            "cache": self._check_cache(),
-            "solicitudes": self._check_solicitudes(),
+            
         }
         status_value = "healthy" if all(checks.values()) else "degraded"
         code = 200 if status_value == "healthy" else 503

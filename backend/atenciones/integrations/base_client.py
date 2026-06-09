@@ -1,6 +1,6 @@
 import logging
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from functools import wraps
 
 import requests

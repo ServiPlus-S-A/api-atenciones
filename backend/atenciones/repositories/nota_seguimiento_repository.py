@@ -5,19 +5,19 @@ from atenciones.models import NotaSeguimiento
 
 
 @dataclass(frozen=True)
-class AgregarNotaInputDTO:
-    atencion_id: int
-    consultor_id: int
-    contenido: str
+class AddNoteInputDTO:
+    atention_id: int
+    consultant_id: int
+    content: str
 
 
 class NotaSeguimientoRepository:
     @classmethod
-    def guardar_nota(cls, input_dto: AgregarNotaInputDTO) -> NotaSeguimientoDTO:
+    def guardar_nota(cls, input_dto: AddNoteInputDTO) -> NotaSeguimientoDTO:
         nota = NotaSeguimiento(
-            atencion_id=input_dto.atencion_id,
-            consultor_id=input_dto.consultor_id,
-            contenido=input_dto.contenido,
+            atention_id=input_dto.atention_id,
+            consultant_id=input_dto.consultant_id,
+            content=input_dto.content,
         )
         nota.save()
         return NotaSeguimientoDTO.from_orm(nota)
@@ -25,10 +25,10 @@ class NotaSeguimientoRepository:
     @classmethod
     def listar_por_atencion(
         cls,
-        atencion_id: int,
-        consultor_id: int | None = None,
+        atention_id: int,
+        consultant_id: int | None = None,
     ) -> list[NotaSeguimientoDTO]:
-        qs = NotaSeguimiento.objects.filter(atencion_id=atencion_id)
-        if consultor_id is not None:
-            qs = qs.filter(consultor_id=consultor_id)
+        qs = NotaSeguimiento.objects.filter(atention_id=atention_id)
+        if consultant_id is not None:
+            qs = qs.filter(consultant_id=consultant_id)
         return [NotaSeguimientoDTO.from_orm(n) for n in qs]

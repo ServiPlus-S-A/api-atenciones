@@ -1,9 +1,7 @@
 from .base import *  # noqa: F403
+import os # Migraciones locales: conexión directa PG puerto 5432
 
 DEBUG = True
-
-# Migraciones locales: conexión directa PG puerto 5432
-import os
 
 _direct_url = os.environ.get("DATABASE_URL_DIRECT")
 if _direct_url:

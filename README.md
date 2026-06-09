@@ -52,15 +52,15 @@ npm run test:e2e
 
 ## Decisiones arquitectónicas
 
-| Capa | Patrón | Tecnología |
-|------|--------|------------|
-| View | Orquestación | DRF APIView |
-| Application | Serializers puros | DRF Serializer |
-| Logic | Service Layer | Python + `@transaction.atomic` |
-| Data Access | Repository + DTO | Django ORM |
-| Async | Producer-Consumer | Celery 5.4 + Redis |
-| Integration | Circuit Breaker | HTTP clients con fallback |
-| Security | RBAC + Audit append-only | SimpleJWT + AuditLog |
+| Capa        | Patrón                   | Tecnología                     |
+| ----------- | ------------------------ | ------------------------------ |
+| View        | Orquestación             | DRF APIView                    |
+| Application | Serializers puros        | DRF Serializer                 |
+| Logic       | Service Layer            | Python + `@transaction.atomic` |
+| Data Access | Repository + DTO         | Django ORM                     |
+| Async       | Producer-Consumer        | Celery 5.4 + Redis             |
+| Integration | Circuit Breaker          | HTTP clients con fallback      |
+| Security    | RBAC + Audit append-only | SimpleJWT + AuditLog           |
 
 ## Known limitations
 
@@ -82,4 +82,38 @@ Registros de `audit_log` > 6 meses se exportan a CSV+gzip en Supabase Storage y 
 backend/          # Django + DRF
 frontend/         # Next.js 14 App Router
 docker-compose.yml
+```
+
+# Comandos para evaluar la calidad del codigo
+
+## Ruff (lint)
+
+Verificador y formateador de código ultra rápido. Detecta errores de estilo, imports no utilizados, variables no usadas y otros problemas comunes. Con `--fix` corrige automáticamente los problemas que puede resolver.
+
+Ejecutar desde la raiz del repo:
+
+```powershell
+$env:PYTHONPATH = "backend"
+echo $env:PYTHONPATH
+ruff check backend/atenciones backend/config backend/tests --fix
+```
+
+## Mypy (type check)
+
+Verificador de tipos estático. Valida que las anotaciones de tipos sean correctas y detecta errores potenciales sin ejecutar el código. Ayuda a prevenir bugs relacionados con tipos.
+
+Ejecutar desde la raiz del repo:
+
+```powershell
+mypy backend/atenciones backend/config backend/tests --explicit-package-bases
+```
+
+## Coverage
+
+Ejecuta los tests y genera un reporte de cobertura de código. Muestra qué porcentaje del código está siendo probado y qué líneas no tienen tests.
+
+Ejecutar desde el backend:
+
+```powershell
+$env:PYTHONPATH = "."; pytest --cov=atenciones --cov-report=term-missing
 ```

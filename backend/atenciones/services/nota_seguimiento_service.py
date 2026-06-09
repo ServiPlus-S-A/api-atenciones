@@ -4,7 +4,7 @@ from atenciones.dtos.output.nota_seguimiento_dto import NotaSeguimientoDTO
 from atenciones.exceptions.custom_exceptions import AtencionNoEncontrada, SolicitudNoAutorizada
 from atenciones.repositories.atencion_repository import AtencionRepository
 from atenciones.repositories.nota_seguimiento_repository import (
-    AgregarNotaInputDTO,
+    AddNoteInputDTO,
     NotaSeguimientoRepository,
 )
 
@@ -20,10 +20,10 @@ class NotaSeguimientoService:
         if rol not in (Rol.CONSULTOR, Rol.COORDINADOR):
             raise SolicitudNoAutorizada()
         dto = NotaSeguimientoRepository.guardar_nota(
-            AgregarNotaInputDTO(
-                atencion_id=atencion_id,
-                consultor_id=user.id,
-                contenido=contenido,
+            AddNoteInputDTO(
+                atention_id=atencion_id,
+                consultant_id=user.id,
+                content=contenido,
             ),
         )
         AuditService.registrar(
@@ -31,7 +31,7 @@ class NotaSeguimientoService:
             user.id,
             rol,
             atencion_id,
-            {"nota_id": dto.id},
+            {"note_id": dto.id},
             str(getattr(user, "username", user.id)),
         )
         return dto
@@ -39,5 +39,5 @@ class NotaSeguimientoService:
     @classmethod
     def listar(cls, user, atencion_id: int) -> list[NotaSeguimientoDTO]:
         AtencionRepository.obtener_por_id(atencion_id)
-        consultor_id = user.id if getattr(user, "rol", "") == Rol.CONSULTOR else None
-        return NotaSeguimientoRepository.listar_por_atencion(atencion_id, consultor_id)
+        consultant_id = user.id if getattr(user, "rol", "") == Rol.CONSULTOR else None
+        return NotaSeguimientoRepository.listar_por_atencion(atencion_id, consultant_id)

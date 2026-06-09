@@ -1,5 +1,6 @@
 # CONCERN-09: configuración de producción
 from .base import *  # noqa: F403
+import dj_database_url
 
 DEBUG = False
 
@@ -7,7 +8,6 @@ ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")  # noqa: F405
 
 # CONN_MAX_AGE=0 obligatorio con pooler (puerto 6543)
 CONN_MAX_AGE = 0
-import dj_database_url
 
 DATABASES["default"] = dj_database_url.parse(  # noqa: F405
     os.environ["DATABASE_URL"],  # noqa: F405

@@ -3,14 +3,14 @@ from rest_framework.exceptions import APIException
 
 
 class BaseAtencionException(APIException):
-    status_code = status.HTTP_400_BAD_REQUEST
-    default_code = "error"
-    default_detail = "Error en operación de atención."
+    status_code: int = status.HTTP_400_BAD_REQUEST
+    default_code: str = "error"
+    default_detail: str = "Error en operación de atención."
 
-    def __init__(self, detail=None, code=None):
-        self.detail = detail or self.default_detail
+    def __init__(self, detail: str | None = None, code: str | None = None) -> None:
         if code:
             self.default_code = code
+        super().__init__(detail=detail, code=code)
 
 
 class AtencionNoEncontrada(BaseAtencionException):
@@ -53,3 +53,12 @@ class ServicioExternoNoDisponible(BaseAtencionException):
     status_code = status.HTTP_503_SERVICE_UNAVAILABLE
     default_code = "servicio_externo_no_disponible"
     default_detail = "Servicio externo no disponible."
+
+
+class ParametrosFiltroInvalidos(BaseAtencionException):
+    default_code = "parametros_filtro_invalidos"
+    default_detail = "Parámetros de filtro inválidos."
+
+    def __init__(self, field_errors: dict) -> None:
+        self.field_errors = field_errors
+        super().__init__(detail=self.default_detail)

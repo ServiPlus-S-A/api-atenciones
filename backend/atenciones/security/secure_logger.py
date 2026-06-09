@@ -8,15 +8,15 @@ logger = logging.getLogger("atenciones.secure")
 
 
 class SecureLogger:
-    """Secure Logger — append-only vía AuditLog; sin UPDATE/DELETE."""
+    """Secure Logger — append-only via AuditLog; no UPDATE/DELETE."""
 
     @staticmethod
     def registrar(
-        operacion: str,
+        operation: str,
         actor_id: int,
-        actor_rol: str,
-        recurso_id: int | None,
-        ip_origen: str,
+        actor_role: str,
+        resource_id: int | None,
+        ip_origin: str,
         jwt_subject: str,
         payload: dict | None = None,
     ) -> None:
@@ -24,21 +24,21 @@ class SecureLogger:
         canonical = json.dumps(payload, sort_keys=True, default=str)
         payload_hash = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
         AuditLog.objects.create(
-            operacion=operacion,
+            operation=operation,
             actor_id=actor_id or 0,
-            actor_rol=actor_rol or "SYSTEM",
-            atencion_id=recurso_id,
+            actor_role=actor_role or "SYSTEM",
+            atention_id=resource_id,
             payload_hash_sha256=payload_hash,
             jwt_subject=jwt_subject or "anonymous",
         )
         logger.info(
-            "audit operacion=%s actor=%s recurso=%s ip=%s",
-            operacion,
+            "audit operation=%s actor=%s resource=%s ip=%s",
+            operation,
             actor_id,
-            recurso_id,
-            ip_origen,
+            resource_id,
+            ip_origin,
         )
 
     @staticmethod
-    def registrar_fallo(operacion: str, actor_id, detalle: str, context: dict) -> None:
-        logger.warning("fallo operacion=%s detalle=%s", operacion, detalle)
+    def registrar_fallo(operation: str, actor_id, detail: str, context: dict) -> None:
+        logger.warning("failure operation=%s detail=%s", operation, detail)
