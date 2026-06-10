@@ -13,7 +13,7 @@ jobs:
       issues: write
       contents: read
     container:
-      image: pragent/pr-agent:latest # Mantenemos tu misma imagen de Docker
+      image: pragent/pr-agent:latest # Mantenemos la misma imagen de Docker
     steps:
       - name: Ejecutar comandos de Qodo
         env:
