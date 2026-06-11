@@ -1,6 +1,7 @@
 # Docker Compose — dev overrides: volumes hot-reload, DEBUG=true
 services:
   backend:
+    entrypoint: ["sh", "-c", "python manage.py seed_estados && python manage.py runserver 0.0.0.0:8000"]
     environment:
       DEBUG: "true"
       DJANGO_SETTINGS_MODULE: config.settings.development
