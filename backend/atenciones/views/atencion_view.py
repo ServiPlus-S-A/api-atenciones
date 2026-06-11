@@ -30,7 +30,7 @@ def _paginate(items: list, page: int, page_size: int) -> dict:
 class AtencionListCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
-    @extend_schema(responses={200: dict})
+    @extend_schema(operation_id="atenciones_list", responses={200: dict})
     def get(self, request):
         ser = ListarAtencionInputSerializer(data=request.query_params)
         ser.is_valid(raise_exception=True)
@@ -54,7 +54,7 @@ class AtencionListCreateView(APIView):
 class AtencionDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
-    @extend_schema(responses={200: dict})
+    @extend_schema(operation_id="atenciones_retrieve", responses={200: AtencionOutputSerializer})
     def get(self, request, pk):
         dto = AtencionService.detalle(pk)
         return Response(AtencionOutputSerializer.from_dto(dto))
@@ -63,7 +63,7 @@ class AtencionDetailView(APIView):
 class AtencionProgramarView(APIView):
     permission_classes = [IsAuthenticated, IsCoordinador]
 
-    @extend_schema(request=ProgramarAtencionInputSerializer)
+    @extend_schema(request=ProgramarAtencionInputSerializer, responses={200: AtencionOutputSerializer})
     def patch(self, request, pk):
         ser = ProgramarAtencionInputSerializer(data=request.data)
         ser.is_valid(raise_exception=True)
@@ -74,7 +74,7 @@ class AtencionProgramarView(APIView):
 class AtencionFinalizarView(APIView):
     permission_classes = [IsAuthenticated, IsConsultor, IsOwnerConsultorOrCoordinador]
 
-    @extend_schema(request=FinalizarAtencionInputSerializer)
+    @extend_schema(request=FinalizarAtencionInputSerializer, responses={200: AtencionOutputSerializer})
     def patch(self, request, pk):
         ser = FinalizarAtencionInputSerializer(data=request.data)
         ser.is_valid(raise_exception=True)
@@ -85,7 +85,7 @@ class AtencionFinalizarView(APIView):
 class AtencionAnularView(APIView):
     permission_classes = [IsAuthenticated, IsCoordinador]
 
-    @extend_schema(request=AnularAtencionInputSerializer)
+    @extend_schema(request=AnularAtencionInputSerializer, responses={200: AtencionOutputSerializer})
     def patch(self, request, pk):
         ser = AnularAtencionInputSerializer(data=request.data)
         ser.is_valid(raise_exception=True)
