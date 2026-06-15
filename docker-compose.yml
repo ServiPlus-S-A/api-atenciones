@@ -38,9 +38,8 @@ services:
     depends_on:
       redis-local:
         condition: service_healthy
-      backend:
-        condition: service_healthy
     restart: always
+
 
   celery-beat:
     build:

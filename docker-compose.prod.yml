@@ -7,7 +7,7 @@ services:
     env_file: .env
     command: gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120
     depends_on:
-      redis-broker:
+      redis-local:
         condition: service_healthy
     logging:
       driver: json-file
@@ -20,7 +20,7 @@ services:
       timeout: 10s
       retries: 3
 
-  redis-broker:
+  redis-local:
     image: redis:7.2-alpine
     restart: always
     healthcheck:
@@ -40,7 +40,7 @@ services:
     command: celery -A config worker --loglevel=info
     env_file: .env
     depends_on:
-      redis-broker:
+      redis-local:
         condition: service_healthy
     logging:
       driver: json-file
@@ -54,7 +54,7 @@ services:
     command: celery -A config beat --loglevel=info
     env_file: .env
     depends_on:
-      redis-broker:
+      redis-local:
         condition: service_healthy
     logging:
       driver: json-file
