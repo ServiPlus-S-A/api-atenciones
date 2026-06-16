@@ -49,7 +49,9 @@ def test_health_solicitudes_falla_no_degrada():
     with (
         patch.object(HealthView, "_check_db", return_value="ok"),
         patch.object(HealthView, "_check_cache", return_value="ok"),
-        patch.object(HealthView, "_check_solicitudes", return_value="error: conn error"),
+        patch.object(
+            HealthView, "_check_solicitudes", return_value="error: conn error"
+        ),
         patch.object(HealthView, "_check_celery_worker", return_value="ok"),
         patch.object(HealthView, "_check_celery_beat", return_value="ok"),
     ):
@@ -127,11 +129,12 @@ def test_health_check_celery_beat_ok_y_falla():
         assert view._check_celery_beat() == "ok"
         # Falla no heartbeat registrado
         mock_cache.get.return_value = None
-        assert "error: no se ha registrado ningún heartbeat" in view._check_celery_beat()
+        assert (
+            "error: no se ha registrado ningún heartbeat" in view._check_celery_beat()
+        )
         # Falla heartbeat obsoleto
         mock_cache.get.return_value = time.time() - 150
         assert "error: último heartbeat hace 150 segundos" in view._check_celery_beat()
         # Falla excepcion
         mock_cache.get.side_effect = Exception("redis connection error")
         assert "error: redis connection error" in view._check_celery_beat()
-

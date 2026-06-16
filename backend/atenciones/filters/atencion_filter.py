@@ -23,6 +23,8 @@ class AtencionFilterForm(forms.Form):
         form = cls(query_params)
 
         if not form.is_valid():
-            raise ParametrosFiltroInvalidos(field_errors={k: list(v) for k, v in form.errors.items()})
+            raise ParametrosFiltroInvalidos(
+                field_errors={k: list(v) for k, v in form.errors.items()}
+            )
 
         return form.cleaned_data

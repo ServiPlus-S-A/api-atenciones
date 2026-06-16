@@ -1,5 +1,14 @@
-from tests.factories.atencion_factory import AtencionAnuladaFactory, AtencionFactory, AtencionFinalizadaFactory
-from tests.factories.user_factory import ClienteFactory, ConsultorFactory, CoordinadorFactory, UserFactory
+from tests.factories.atencion_factory import (
+    AtencionAnuladaFactory,
+    AtencionFactory,
+    AtencionFinalizadaFactory,
+)
+from tests.factories.user_factory import (
+    ClienteFactory,
+    ConsultorFactory,
+    CoordinadorFactory,
+    UserFactory,
+)
 
 __all__ = [
     "AtencionFactory",

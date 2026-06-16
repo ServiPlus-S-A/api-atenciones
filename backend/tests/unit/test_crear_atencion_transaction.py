@@ -55,4 +55,3 @@ def test_crear_atencion_transaccion_view_serializer_service_repository_output_se
     assert AuditLog.objects.filter(operation="CREAR", atention_id=atencion.pk).exists()
 
     mock_delay.assert_called_once()
-

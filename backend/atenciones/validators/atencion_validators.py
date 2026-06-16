@@ -9,14 +9,18 @@ from atenciones.exceptions.custom_exceptions import (
 
 
 def validar_anticipacion_24h(fecha_programada: datetime) -> None:
-    if fecha_programada - datetime.now(tz=fecha_programada.tzinfo) < timedelta(hours=24):
+    if fecha_programada - datetime.now(tz=fecha_programada.tzinfo) < timedelta(
+        hours=24
+    ):
         raise AnticipacionInsuficiente(ERR_ANTICIPATION)
 
 
 def validar_bloques_30min(fecha_inicio: datetime, fecha_fin: datetime) -> None:
     for dt in (fecha_inicio, fecha_fin):
         if dt.minute % 30 != 0 or dt.second != 0 or dt.microsecond != 0:
-            raise AnticipacionInsuficiente("Las fechas deben alinearse a bloques de 30 minutos.")
+            raise AnticipacionInsuficiente(
+                "Las fechas deben alinearse a bloques de 30 minutos."
+            )
 
 
 def validar_cruce_horario(

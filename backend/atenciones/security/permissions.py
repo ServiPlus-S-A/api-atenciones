@@ -5,7 +5,10 @@ from atenciones.models import Atencion, AtencionConsultor
 
 
 def _get_rol(user) -> str | None:
-    return getattr(user, "rol", None) or user.groups.filter(name__in=Rol).values_list("name", flat=True).first()
+    return (
+        getattr(user, "rol", None)
+        or user.groups.filter(name__in=Rol).values_list("name", flat=True).first()
+    )
 
 
 class IsConsultor(BasePermission):
@@ -29,7 +32,11 @@ class IsOwnerConsultorOrCoordinador(BasePermission):
         if rol == Rol.COORDINADOR:
             return True
         if rol == Rol.CONSULTOR:
-            atencion_id = obj.pk if isinstance(obj, Atencion) else getattr(obj, "atencion_id", obj.pk)
+            atencion_id = (
+                obj.pk
+                if isinstance(obj, Atencion)
+                else getattr(obj, "atencion_id", obj.pk)
+            )
             return AtencionConsultor.objects.filter(
                 atention_id=atencion_id,
                 consultant_id=request.user.id,
