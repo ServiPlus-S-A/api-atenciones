@@ -34,4 +34,3 @@ def enviar_email_anulacion(self, atencion_id: int):
 @shared_task
 def registrar_heartbeat_beat():
     cache.set("celery_beat_last_heartbeat", time.time(), timeout=120)
-

@@ -5,7 +5,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 
-from atenciones.serializers.output.nota_seguimiento_output_serializer import NotaSeguimientoOutputSerializer
+from atenciones.serializers.output.nota_seguimiento_output_serializer import (
+    NotaSeguimientoOutputSerializer,
+)
 from atenciones.services.nota_seguimiento_service import NotaSeguimientoService
 
 
@@ -23,7 +25,10 @@ class NotaListCreateView(APIView):
         content = request.data.get("content") or request.data.get("contenido") or ""
         if len(content) < 15:
             return Response(
-                {"error": "validation_error", "message": "content must be at least 15 characters"},
+                {
+                    "error": "validation_error",
+                    "message": "content must be at least 15 characters",
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
         dto = NotaSeguimientoService.agregar_nota(request.user, pk, content)

@@ -60,8 +60,11 @@ mtaquez        ──●──●──●────────────�
 Antes de cualquier push, ejecutar localmente en PowerShell:
 
 ```powershell
-# Linter y formateo (Ruff)
+# Lint (Ruff)
 $env:PYTHONPATH = "backend"; ruff check backend/atenciones backend/config backend/tests --fix
+
+# Formato (Ruff)
+$env:PYTHONPATH = "backend"; ruff format --check backend/atenciones backend/config backend/tests
 
 # Type checker (Mypy)
 mypy backend/atenciones backend/config backend/tests --explicit-package-bases
@@ -78,10 +81,11 @@ GitHub Actions ejecuta automáticamente:
 
 1. Instalación de dependencias.
 2. `ruff check` (linter).
-3. `mypy` (type checker estricto).
-4. `pytest --cov` (cobertura mínima 80% sobre código nuevo).
-5. Build de imágenes Docker.
-6. Qodo Merge analiza el diff y publica review en el PR.
+3. `ruff format --check` (formato).
+4. `mypy` (type checker estricto).
+5. `pytest --cov` (cobertura mínima 80% sobre código nuevo).
+6. Build de imágenes Docker.
+7. Qodo Merge analiza el diff y publica review en el PR.
 
 Si el pipeline falla, el PR no puede mergearse.
 

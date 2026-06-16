@@ -96,7 +96,9 @@ class AtencionService:
             input_dto.fecha_fin,
             excluir_atencion_id=atencion_id,
         )
-        validar_cruce_horario(consultor_ids, input_dto.fecha_programada, input_dto.fecha_fin, cruces)
+        validar_cruce_horario(
+            consultor_ids, input_dto.fecha_programada, input_dto.fecha_fin, cruces
+        )
         dto = AtencionRepository.programar(input_dto)
         _invalidate_cache(user)
         AuditService.registrar(

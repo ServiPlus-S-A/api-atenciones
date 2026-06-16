@@ -27,7 +27,11 @@ class HealthView(APIView):
             "solicitudes": solicitudes_check,
         }
 
-        status_value = "healthy" if all(v == "ok" for v in critical_checks.values()) else "degraded"
+        status_value = (
+            "healthy"
+            if all(v == "ok" for v in critical_checks.values())
+            else "degraded"
+        )
         code = 200 if status_value == "healthy" else 503
         return Response({"status": status_value, "checks": checks}, status=code)
 
@@ -60,6 +64,7 @@ class HealthView(APIView):
     def _check_celery_worker(self) -> str:
         try:
             from config.celery import app as celery_app
+
             insp = celery_app.control.inspect(timeout=2.0)
             res = insp.ping()
             if not res:
@@ -79,4 +84,3 @@ class HealthView(APIView):
             return "ok"
         except Exception as e:
             return f"error: {str(e)}"
-

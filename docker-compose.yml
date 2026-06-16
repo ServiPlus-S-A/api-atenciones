@@ -1,4 +1,5 @@
-# Docker Compose 2.27 — backend + redis-local + celery-worker + celery-beat + frontend
+# Docker Compose 2.27 — backend + redis-local + celery-worker + celery-beat
+# El frontend está planificado para una fase futura y no se levanta en este compose.
 services:
   backend:
     build:

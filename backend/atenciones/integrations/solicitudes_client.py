@@ -26,7 +26,9 @@ class SolicitudesClient(BaseIntegrationClient):
                 consultor_ids=data.get("consultor_ids", []),
             )
         except requests.RequestException:
-            return SolicitudInfo(id=solicitud_id, estado="DESCONOCIDO", consultor_ids=[])
+            return SolicitudInfo(
+                id=solicitud_id, estado="DESCONOCIDO", consultor_ids=[]
+            )
 
 
 solicitudes_client = SolicitudesClient()

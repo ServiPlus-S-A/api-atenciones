@@ -11,7 +11,9 @@ def test_archival_audit_log_mensual_calls_command(monkeypatch):
         if name == "archival_audit_log":
             called["count"] += 1
 
-    monkeypatch.setattr("atenciones.tasks.archival_tasks.call_command", fake_call_command)
+    monkeypatch.setattr(
+        "atenciones.tasks.archival_tasks.call_command", fake_call_command
+    )
 
     archival_audit_log_mensual()
 

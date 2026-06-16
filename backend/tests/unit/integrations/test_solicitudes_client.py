@@ -22,7 +22,10 @@ def test_get_retorna_info(mock_get):
 
 
 @pytest.mark.unit
-@patch("atenciones.integrations.base_client.requests.get", side_effect=requests.RequestException("down"))
+@patch(
+    "atenciones.integrations.base_client.requests.get",
+    side_effect=requests.RequestException("down"),
+)
 def test_get_fallback_desconocido(mock_get):
     info = SolicitudesClient().get(9)
     assert info.estado == "DESCONOCIDO"

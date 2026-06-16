@@ -2,6 +2,7 @@
 Settings para GitHub Actions y act local.
 Postgres del servicio de CI sin SSL; cache en memoria y Celery eager como en testing.
 """
+
 import os
 
 import dj_database_url

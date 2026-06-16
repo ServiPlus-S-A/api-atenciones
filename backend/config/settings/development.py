@@ -1,5 +1,5 @@
 from .base import *  # noqa: F403
-import os # Migraciones locales: conexión directa PG puerto 5432
+import os  # Migraciones locales: conexión directa PG puerto 5432
 
 DEBUG = True
 

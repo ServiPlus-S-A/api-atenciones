@@ -45,7 +45,9 @@ def test_archival_audit_log_archives_and_deletes(monkeypatch):
         jwt_subject="jwt",
         timestamp=__import__("datetime").datetime(2024, 1, 1, 12, 0, 0),
     )
-    monkeypatch.setattr(AuditLog.objects, "filter", lambda *args, **kwargs: _FakeQS([fake_log]))
+    monkeypatch.setattr(
+        AuditLog.objects, "filter", lambda *args, **kwargs: _FakeQS([fake_log])
+    )
 
     uploaded = {}
 

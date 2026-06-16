@@ -33,8 +33,8 @@
 - [ ] Tests unitarios añadidos sobre el código nuevo
 - [ ] Cobertura local ≥ 80% sobre código nuevo (verificado con `pytest --cov`)
 - [ ] `ruff check` pasa sin errores
+- [ ] `ruff format --check` pasa sin errores
 - [ ] `mypy` pasa sin errores (tipado estático verificado)
-- [ ] `import-linter` pasa sin errores (valida las dependencias entre capas)
 
 ## Documentación
 

@@ -15,14 +15,26 @@ class Atention(models.Model):
         choices=[(e.value, e.value) for e in EstadoAtencion],
         default=EstadoAtencion.AGENDADA,
     )
-   
-    scheduled_date: models.DateTimeField[datetime | None, datetime | None] = models.DateTimeField(null=True, blank=True)
-    closing_date: models.DateTimeField[datetime | None, datetime | None] = models.DateTimeField(null=True, blank=True)
-    final_note: models.TextField[str | None, str | None] = models.TextField(null=True, blank=True)
-    cancellation_reason: models.TextField[str | None, str | None] = models.TextField(null=True, blank=True)
+
+    scheduled_date: models.DateTimeField[datetime | None, datetime | None] = (
+        models.DateTimeField(null=True, blank=True)
+    )
+    closing_date: models.DateTimeField[datetime | None, datetime | None] = (
+        models.DateTimeField(null=True, blank=True)
+    )
+    final_note: models.TextField[str | None, str | None] = models.TextField(
+        null=True, blank=True
+    )
+    cancellation_reason: models.TextField[str | None, str | None] = models.TextField(
+        null=True, blank=True
+    )
     created_by: models.IntegerField[int, int] = models.IntegerField()
-    created_at: models.DateTimeField[datetime, datetime] = models.DateTimeField(auto_now_add=True)
-    updated_at: models.DateTimeField[datetime, datetime] = models.DateTimeField(auto_now=True)
+    created_at: models.DateTimeField[datetime, datetime] = models.DateTimeField(
+        auto_now_add=True
+    )
+    updated_at: models.DateTimeField[datetime, datetime] = models.DateTimeField(
+        auto_now=True
+    )
 
     if TYPE_CHECKING:
         from .atention_cosultor import AtentionConsultant
