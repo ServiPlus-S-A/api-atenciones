@@ -1,9 +1,5 @@
 name: CD – backend-atenciones
 
-# ─────────────────────────────────────────────────────────────────
-# Se ejecuta cuando un PR es mergeado a main.
-# Merge = push interno de GitHub, aunque push directo esté bloqueado.
-# ─────────────────────────────────────────────────────────────────
 on:
   push:
     branches: [main]
@@ -11,9 +7,6 @@ on:
 env:
   IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/serviplus-atenciones-backend
 
-# ═══════════════════════════════════════════════════════════════
-# JOB 1 ── Construye la imagen y la sube a Docker Hub
-# ═══════════════════════════════════════════════════════════════
 jobs:
   build-and-push:
     name: Build y push → Docker Hub
@@ -41,12 +34,8 @@ jobs:
             ${{ env.IMAGE_NAME }}:latest
             ${{ env.IMAGE_NAME }}:main-${{ github.sha }}
           cache-from: type=gha
-          cache-to:   type=gha,mode=max
+          cache-to: type=gha,mode=max
 
-# ═══════════════════════════════════════════════════════════════
-# JOB 2 ── Baja la imagen nueva en la EC2
-#   Solo corre si el Job 1 terminó exitosamente
-# ═══════════════════════════════════════════════════════════════
   pull-images:
     name: Pull de imágenes en EC2
     runs-on: ubuntu-latest
@@ -56,66 +45,50 @@ jobs:
       - name: Checkout código
         uses: actions/checkout@v4
 
-      # Copia el docker-compose.prod.yml a la EC2
       - name: Copiar docker-compose.prod.yml
         uses: appleboy/scp-action@v0.1.7
         with:
-          host:     ${{ secrets.EC2_HOST }}
+          host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
-          key:      ${{ secrets.EC2_SSH_KEY }}
-          source:   docker-compose.prod.yml
-          target:   /home/ec2-user/serviplus/atenciones/
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: docker-compose.prod.yml
+          target: /home/ec2-user/serviplus/atenciones/
 
-      # Se conecta por SSH y ordena a la EC2 descargar la imagen nueva
       - name: Pull imágenes
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host:     ${{ secrets.EC2_HOST }}
+          host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
-          key:      ${{ secrets.EC2_SSH_KEY }}
+          key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             set -e
             cd /home/ec2-user/serviplus/atenciones
 
-            # 1. Login a Docker Hub para poder bajar imagen privada
-
             echo "${{ secrets.DOCKERHUB_TOKEN }}" | \
               docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-            # 2. Descarga la imagen nueva ANTES de bajar el servicio
-
             docker compose -f docker-compose.prod.yml pull backend celery-worker
 
-# ═══════════════════════════════════════════════════════════════
-# JOB 3 ── Levanta los servicios con la imagen ya descargada
-#   Solo corre si el Job 2 terminó exitosamente
-# ═══════════════════════════════════════════════════════════════
   start-services:
     name: Levantar servicios en EC2
     runs-on: ubuntu-latest
     needs: pull-images
     env:
-      HEALTH_BASE_URL: ${{ secrets.HEALTH_BASE_URL }}
-      HEALTH_PATH: /health/
+      HEALTH_BASE_URL: ${{ secrets.BASE_URL }}
 
     steps:
       - name: Checkout código
         uses: actions/checkout@v4
 
-      # Se conecta por SSH y ordena a la EC2 ejecutar migraciones y levantar servicios
       - name: Levantar servicios
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host:     ${{ secrets.EC2_HOST }}
+          host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
-          key:      ${{ secrets.EC2_SSH_KEY }}
+          key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             set -e
             cd /home/ec2-user/serviplus/atenciones
-
-            # 1. Corre las migraciones con la imagen nueva
-            # Usamos el pooler en CI/CD porque el host directo de Supabase no siempre
-            # es alcanzable desde la EC2 donde corre el despliegue.
 
             DATABASE_URL_VAL=$(grep '^DATABASE_URL=' .env | cut -d'=' -f2-)
 
@@ -124,17 +97,16 @@ jobs:
               -e DATABASE_URL="$DATABASE_URL_VAL" \
               backend python manage.py migrate --no-input
 
-            # 2. Levanta todos los servicios con la imagen nueva
-
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
 
-            # 3. Espera hasta 2 minutos a que el backend responda localmente en la EC2
+            sleep 20
+
             echo "Esperando que el servicio esté listo..."
 
             for i in $(seq 1 12); do
               STATUS=$(curl --max-time 5 -s -o /dev/null -w "%{http_code}" \
                 -H "X-Forwarded-Proto: https" \
-                "${CURL_URL}/health/" || echo "000")
+                "${{ env.HEALTH_BASE_URL }}/health/" || echo "000")
               if [ "$STATUS" = "200" ]; then
                 echo "Servicio saludable tras $i intento(s)"
                 break
@@ -146,8 +118,6 @@ jobs:
                 exit 1
               fi
             done
-
-            # 4. Limpia imágenes antiguas para liberar disco
 
             docker image prune -f
 

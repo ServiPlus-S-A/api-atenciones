@@ -1,0 +1,34 @@
+name: Qodo AI PR Review (* -> develop)
+
+on:
+  pull_request:
+    branches:
+      - 'develop' # Reemplaza tu 'if' anterior; esto asegura que solo corra hacia develop
+
+jobs:
+  qodo-review:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write # Permiso crucial para que Qodo comente en el PR
+      issues: write
+      contents: read
+    container:
+      image: pragent/pr-agent:latest # Mantenemos tu misma imagen de Docker
+    steps:
+      - name: Ejecutar comandos de Qodo
+        env:
+          # 1. Forzar proveedor y pasar tokens de forma segura
+          CONFIG__GIT_PROVIDER: "github"
+          OPENAI__KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB__TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+          # GitHub provee la URL del PR automáticamente
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          echo "Iniciando revisión en $PR_URL"
+          
+          # 2. Ejecutar el comando 'review' (Análisis general y de seguridad)
+          pr-agent --pr_url=$PR_URL review
+          
+          # 3. Ejecutar el comando 'improve' (Sugerencias de refactorización y código)
+          pr-agent --pr_url=$PR_URL improve

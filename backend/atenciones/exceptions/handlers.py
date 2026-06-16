@@ -23,7 +23,11 @@ def custom_exception_handler(exc, context):
         )
 
     if isinstance(exc, ValidationError):
-        field_errors = exc.detail if isinstance(exc.detail, dict) else {"non_field_errors": exc.detail}
+        field_errors = (
+            exc.detail
+            if isinstance(exc.detail, dict)
+            else {"non_field_errors": exc.detail}
+        )
         return _build_response(
             code="validation_error",
             message="Error de validación.",

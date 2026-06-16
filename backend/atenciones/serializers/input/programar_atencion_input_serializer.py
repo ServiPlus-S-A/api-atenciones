@@ -9,7 +9,9 @@ class ProgramarAtencionInputSerializer(serializers.Serializer):
         inicio = attrs["fecha_programada"]
         fin = attrs["fecha_fin"]
         if fin <= inicio:
-            raise serializers.ValidationError("fecha_fin debe ser posterior a fecha_programada.")
+            raise serializers.ValidationError(
+                "fecha_fin debe ser posterior a fecha_programada."
+            )
         for dt in (inicio, fin):
             if dt.minute % 30 != 0 or dt.second != 0:
                 raise serializers.ValidationError(

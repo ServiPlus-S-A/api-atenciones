@@ -3,7 +3,10 @@ from datetime import datetime, timedelta, timezone
 import pytest
 
 from atenciones.constants import EstadoAtencion
-from atenciones.exceptions.custom_exceptions import AnticipacionInsuficiente, TransicionInvalidaException
+from atenciones.exceptions.custom_exceptions import (
+    AnticipacionInsuficiente,
+    TransicionInvalidaException,
+)
 from atenciones.exceptions.custom_exceptions import CruceHorarioException
 from atenciones.validators.atencion_validators import (
     validar_anticipacion_24h,
@@ -66,4 +69,6 @@ def test_cruce_horario_consultor_no_en_lista():
     inicio = datetime.now(timezone.utc) + timedelta(days=2)
     fin = inicio + timedelta(hours=1)
     cruces = [(99, inicio, fin)]
-    validar_cruce_horario([1], inicio + timedelta(hours=2), fin + timedelta(hours=2), cruces)
+    validar_cruce_horario(
+        [1], inicio + timedelta(hours=2), fin + timedelta(hours=2), cruces
+    )

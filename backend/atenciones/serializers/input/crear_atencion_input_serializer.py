@@ -8,4 +8,6 @@ class CrearAtencionInputSerializer(serializers.Serializer):
         min_length=1,
         required=True,
     )
-    mensaje_preliminar = serializers.CharField(min_length=15, max_length=1000, required=True)
+    mensaje_preliminar = serializers.CharField(
+        min_length=15, max_length=1000, required=True
+    )

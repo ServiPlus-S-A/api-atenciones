@@ -6,74 +6,138 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Atention',
+            name="Atention",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('request_id', models.IntegerField(db_index=True)),
-                ('status', models.CharField(choices=[('AGENDADA', 'AGENDADA'), ('FINALIZADA', 'FINALIZADA'), ('ANULADA', 'ANULADA')], default=atenciones.constants.AtentionStatus['SCHEDULED'], max_length=20)),
-                ('scheduled_date', models.DateTimeField(blank=True, null=True)),
-                ('closing_date', models.DateTimeField(blank=True, null=True)),
-                ('final_note', models.TextField(blank=True, null=True)),
-                ('cancellation_reason', models.TextField(blank=True, null=True)),
-                ('created_by', models.IntegerField()),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("request_id", models.IntegerField(db_index=True)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("AGENDADA", "AGENDADA"),
+                            ("FINALIZADA", "FINALIZADA"),
+                            ("ANULADA", "ANULADA"),
+                        ],
+                        default=atenciones.constants.AtentionStatus["SCHEDULED"],
+                        max_length=20,
+                    ),
+                ),
+                ("scheduled_date", models.DateTimeField(blank=True, null=True)),
+                ("closing_date", models.DateTimeField(blank=True, null=True)),
+                ("final_note", models.TextField(blank=True, null=True)),
+                ("cancellation_reason", models.TextField(blank=True, null=True)),
+                ("created_by", models.IntegerField()),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'db_table': 'atention',
-                'indexes': [models.Index(fields=['status', 'scheduled_date'], name='atention_status_5d1a4b_idx')],
+                "db_table": "atention",
+                "indexes": [
+                    models.Index(
+                        fields=["status", "scheduled_date"],
+                        name="atention_status_5d1a4b_idx",
+                    )
+                ],
             },
         ),
         migrations.CreateModel(
-            name='AuditLog',
+            name="AuditLog",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('operation', models.CharField(max_length=64)),
-                ('actor_id', models.IntegerField()),
-                ('actor_role', models.CharField(max_length=32)),
-                ('atention_id', models.IntegerField(blank=True, null=True)),
-                ('payload_hash_sha256', models.CharField(max_length=64)),
-                ('jwt_subject', models.CharField(max_length=255)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("operation", models.CharField(max_length=64)),
+                ("actor_id", models.IntegerField()),
+                ("actor_role", models.CharField(max_length=32)),
+                ("atention_id", models.IntegerField(blank=True, null=True)),
+                ("payload_hash_sha256", models.CharField(max_length=64)),
+                ("jwt_subject", models.CharField(max_length=255)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
             ],
             options={
-                'db_table': 'audit_log',
-                'indexes': [models.Index(fields=['created_at'], name='audit_log_created_at_idx')],
+                "db_table": "audit_log",
+                "indexes": [
+                    models.Index(fields=["created_at"], name="audit_log_created_at_idx")
+                ],
             },
         ),
         migrations.CreateModel(
-            name='MonitoringNote',
+            name="MonitoringNote",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('consultant_id', models.IntegerField()),
-                ('content', models.TextField()),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('atention', models.ForeignKey(db_column='atention_fk', on_delete=django.db.models.deletion.CASCADE, related_name='notes', to='atenciones.atention')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("consultant_id", models.IntegerField()),
+                ("content", models.TextField()),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "atention",
+                    models.ForeignKey(
+                        db_column="atention_fk",
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="notes",
+                        to="atenciones.atention",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'monitoring_note',
-                'ordering': ['-created_at'],
+                "db_table": "monitoring_note",
+                "ordering": ["-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='AtentionConsultant',
+            name="AtentionConsultant",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('consultant_id', models.IntegerField()),
-                ('is_leader', models.BooleanField(default=False)),
-                ('atention', models.ForeignKey(db_column='atention_fk', on_delete=django.db.models.deletion.CASCADE, related_name='consultants_rel', to='atenciones.atention')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("consultant_id", models.IntegerField()),
+                ("is_leader", models.BooleanField(default=False)),
+                (
+                    "atention",
+                    models.ForeignKey(
+                        db_column="atention_fk",
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="consultants_rel",
+                        to="atenciones.atention",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'atention_consultant',
-                'unique_together': {('atention', 'consultant_id')},
+                "db_table": "atention_consultant",
+                "unique_together": {("atention", "consultant_id")},
             },
         ),
     ]

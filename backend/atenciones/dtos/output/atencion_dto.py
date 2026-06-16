@@ -17,7 +17,9 @@ class AtentionDTO:
     consultores: list[ConsultantRefDTO]
 
     @classmethod
-    def from_orm(cls, instancia: Atention, nombres_consultores: dict[int, str] | None = None) -> "AtentionDTO":
+    def from_orm(
+        cls, instancia: Atention, nombres_consultores: dict[int, str] | None = None
+    ) -> "AtentionDTO":
         nombres = nombres_consultores or {}
         consultants = [
             ConsultantRefDTO(

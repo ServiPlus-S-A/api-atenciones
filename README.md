@@ -9,7 +9,7 @@ como parte de un ecosistema de cinco módulos para la administración integral d
 [![Coverage Backend](https://img.shields.io/badge/coverage%20backend-83%25-brightgreen.svg)]()
 ## Descripción
 
-**ServiPlus** es una plataforma de gestión de servicios técnicos compuesta por cuatro módulos independientes que colaboran entre sí:
+**ServiPlus** es una plataforma de gestión de servicios técnicos compuesta por cinco módulos independientes que colaboran entre sí:
 
 | Módulo | Repositorio |
 |---|---|
@@ -25,7 +25,7 @@ Este repositorio implementa el **módulo de Atenciones**: la instancia concreta 
 ```text
 [ Cliente / Navegador ]
           ↓
-[ Frontend (Next.js 14) ] ←── Interfaz de usuario (SSR/CSR)
+[ Frontend futuro (Next.js 14) ] ←── Interfaz de usuario planificada
           ↓ (HTTPS)
 [ API Gateway (Kong) ] ←── Punto de entrada centralizado — gestionado por el módulo de Parametrización
           |                  Enrutamiento entre módulos · Autenticación JWT · Rate limiting
@@ -60,12 +60,15 @@ Puedes encontrar la documentación ampliada del proyecto en nuestro repositorio 
 | Celery | 5.4+ | Procesamiento asíncrono (workers y Beat) |
 | SimpleJWT | — | Autenticación y emisión de tokens |
 
-### Frontend
+### Frontend futuro
+
+El frontend está planificado para una fase posterior. La carpeta `frontend/` contiene un arquetipo base, pero no hace parte del despliegue funcional actual ni del `docker-compose.yml` principal.
+
 | Tecnología | Versión | Uso |
 |---|---|---|
-| Node.js | 20+ | Entorno de ejecución |
-| Next.js | 14 (App Router) | Framework React (SSR/CSR) |
-| Tailwind CSS | 3.x | Estilos y UI |
+| Node.js | 20+ | Entorno de ejecución planificado |
+| Next.js | 14 (App Router) | Framework React planificado |
+| Tailwind CSS | 3.x | Estilos y UI planificados |
 
 ### Infraestructura y datos
 | Tecnología | Versión | Uso |
@@ -84,7 +87,7 @@ Antes de ejecutar el proyecto, asegúrate de tener instalado y configurado:
 
 - **Docker Compose** 2.27+
 - **Python** 3.12+ (para desarrollo local sin Docker en el backend)
-- **Node.js** 20+ (para desarrollo local en el frontend)
+- **Node.js** 20+ (opcional, solo para el frontend futuro)
 - **Cuenta en Supabase** — se necesita un proyecto activo con base de datos PostgreSQL y Storage habilitado
 
 ---
@@ -161,21 +164,24 @@ Debes ver todos los servicios en estado `Up (healthy)`:
 | Servicio | Puerto |
 |---|---|
 | serviplus-backend | - |
-| serviplus-frontend | - |
 | serviplus-worker | — |
 | serviplus-redis | - |
 
 **Endpoints principales:**
-- **Frontend:** http://localhost:3000
+- **Frontend:** no implementado en esta fase; previsto para una entrega futura.
 - **Backend API:** http://localhost:8000/api
 - **Swagger Docs:** http://localhost:8000/api/schema/swagger-ui/
 
 ## Comandos útiles
 ### Backend
 - **Ver logs:** `docker logs serviplus-atenciones-backend-1 -f`
-- **Linter y Formateo (Ruff):** 
+- **Lint (Ruff):**
   ```powershell
   $env:PYTHONPATH = "backend"; ruff check backend/atenciones backend/config backend/tests --fix
+  ```
+- **Formato (Ruff):**
+  ```powershell
+  $env:PYTHONPATH = "backend"; ruff format --check backend/atenciones backend/config backend/tests
   ```
 - **Type Checking (Mypy):**
   ```powershell
@@ -185,12 +191,13 @@ Debes ver todos los servicios en estado `Up (healthy)`:
   ```powershell
   $env:PYTHONPATH = "."; pytest --cov=atenciones --cov-report=term-missing
   ```
+  Las pruebas mockean servicios externos y caché, pero varias pruebas de repositorios y endpoints sí usan base de datos. Ejecutarlas con `DATABASE_URL` es correcto siempre que apunte a una base de pruebas desechable, nunca a producción.
 
 ## Estructura del repositorio
 ```text
 serviplus-atenciones/
 ├── backend/                  # Código fuente Django + DRF
-├── frontend/                 # Aplicación Next.js 14 (App Router)
+├── frontend/                 # Arquetipo Next.js 14 planificado para una fase futura
 ├── docker-compose.yml        # Orquestación de contenedores
 ├── docker-compose.override.yml # Sobrescritura para hot-reload local
 ├── LICENSE                   # Licencia MIT del proyecto
@@ -216,6 +223,19 @@ Ver `CONTRIBUTING.md` para el detalle completo. Resumen:
 3. Push y PR a `develop`. CI ejecuta pipeline y Qodo revisa.
 4. Atender hallazgos, mergear a `develop`.
 5. Al cerrar sprint, PR de `develop` a `main` con tag semántico.
+
+## Secrets de GitHub Actions
+
+Para que el CD pueda construir, publicar y desplegar en EC2, configura estos secrets en GitHub:
+
+| Secret | Uso |
+|---|---|
+| `DOCKERHUB_USERNAME` | Usuario de Docker Hub para publicar y descargar la imagen |
+| `DOCKERHUB_TOKEN` | Token de Docker Hub con permisos de lectura/escritura |
+| `EC2_HOST` | Host o IP pública de la instancia EC2 |
+| `EC2_USER` | Usuario SSH de la instancia EC2 |
+| `EC2_SSH_KEY` | Llave privada SSH para conectar a la EC2 |
+| `BASE_URL` | URL pública base del backend, sin `/health/`; el CD valida `${BASE_URL}/health/` |
 
 ## Créditos
 

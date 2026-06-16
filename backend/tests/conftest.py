@@ -8,7 +8,9 @@ from atenciones.constants import Rol
 
 
 def _client_with_rol(rol: str) -> APIClient:
-    user = User.objects.create_user(username=f"user_{rol.lower()}", password="testpass123")
+    user = User.objects.create_user(
+        username=f"user_{rol.lower()}", password="testpass123"
+    )
     setattr(user, "rol", rol or "Cliente")
     client: Any = APIClient()
     client.force_authenticate(user=user)
@@ -38,7 +40,9 @@ def mock_cache():
         # Configurar el mock para que actúe como un dict en memoria
         cache_dict = {}
         mock.get.side_effect = lambda key, default=None: cache_dict.get(key, default)
-        mock.set.side_effect = lambda key, value, timeout=None: cache_dict.update({key: value})
+        mock.set.side_effect = lambda key, value, timeout=None: cache_dict.update(
+            {key: value}
+        )
         mock.delete.side_effect = lambda key: cache_dict.pop(key, None)
         mock.clear.side_effect = lambda: cache_dict.clear()
         yield mock

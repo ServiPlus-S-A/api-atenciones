@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+
 load_dotenv()
 
 from celery import Celery  # noqa: E402
@@ -18,5 +19,9 @@ app.conf.beat_schedule = {
     "archival-audit-log-mensual": {
         "task": "atenciones.tasks.archival_tasks.archival_audit_log_mensual",
         "schedule": crontab(day_of_month=1, hour=2, minute=0),
+    },
+    "celery-beat-heartbeat": {
+        "task": "atenciones.tasks.notificacion_tasks.registrar_heartbeat_beat",
+        "schedule": crontab(minute="*"),
     },
 }

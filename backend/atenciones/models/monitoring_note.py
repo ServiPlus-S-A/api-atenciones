@@ -16,7 +16,9 @@ class MonitoringNote(models.Model):
     )
     consultant_id: models.IntegerField[int, int] = models.IntegerField()
     content: models.TextField[str, str] = models.TextField()
-    created_at: models.DateTimeField[datetime, datetime] = models.DateTimeField(auto_now_add=True)
+    created_at: models.DateTimeField[datetime, datetime] = models.DateTimeField(
+        auto_now_add=True
+    )
 
     class Meta:
         db_table = "monitoring_note"

@@ -3,6 +3,7 @@ Settings para pruebas. Usa el pooler de Supabase (puerto 6543) que sí resuelve
 DNS desde local, a diferencia del host directo (puerto 5432) que solo resuelve
 desde dentro de la red de Supabase.
 """
+
 import os
 
 import dj_database_url
@@ -15,7 +16,9 @@ DEBUG = True
 # Debes proveer DATABASE_URL vía entorno (idealmente apuntando al pooler :6543).
 _pooler_url = os.environ.get("DATABASE_URL")
 if not _pooler_url:
-    raise RuntimeError("Falta DATABASE_URL para ejecutar tests (usa el pooler de Supabase :6543).")
+    raise RuntimeError(
+        "Falta DATABASE_URL para ejecutar tests (usa el pooler de Supabase :6543)."
+    )
 
 DATABASES = {
     "default": dj_database_url.parse(
