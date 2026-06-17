@@ -17,7 +17,7 @@ def test_verificar_cruce_sin_cruce(api_client_consultor):
         {
             "fecha_inicio": inicio.isoformat(),
             "fecha_fin": fin.isoformat(),
-        }
+        },
     )
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {"cruce": False}
@@ -44,12 +44,15 @@ def test_verificar_cruce_con_cruce_valido(api_client_consultor):
         {
             "fecha_inicio": query_inicio.isoformat(),
             "fecha_fin": query_fin.isoformat(),
-        }
+        },
     )
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
     assert data["cruce"] is True
-    assert "Ya tienes una atención programada en este horario. Por favor selecciona otro." in data["mensaje"]
+    assert (
+        "Ya tienes una atención programada en este horario. Por favor selecciona otro."
+        in data["mensaje"]
+    )
     assert len(data["cruces"]) == 1
     assert data["cruces"][0]["consultor_id"] == str(user.id)
 
@@ -59,7 +62,9 @@ def test_verificar_cruce_con_cruce_valido(api_client_consultor):
 def test_consultor_asignado_puede_programar(api_client_consultor):
     user = api_client_consultor.test_user
     atencion = AtencionFactory()
-    AtentionConsultant.objects.create(atention=atencion, consultant_id=user.id, is_leader=True)
+    AtentionConsultant.objects.create(
+        atention=atencion, consultant_id=user.id, is_leader=True
+    )
 
     inicio = datetime.now(timezone.utc) + timedelta(days=2)
     inicio = inicio.replace(minute=0, second=0, microsecond=0)
@@ -67,14 +72,11 @@ def test_consultor_asignado_puede_programar(api_client_consultor):
 
     response = api_client_consultor.patch(
         f"/api/atenciones/{atencion.pk}/programar/",
-        {
-            "fecha_programada": inicio.isoformat(),
-            "fecha_fin": fin.isoformat()
-        },
-        format="json"
+        {"fecha_programada": inicio.isoformat(), "fecha_fin": fin.isoformat()},
+        format="json",
     )
     assert response.status_code == status.HTTP_200_OK
-    assert response.json()["fecha_programada"] is not None
+    assert response.json()["scheduled_date"] is not None
 
 
 @pytest.mark.integration
@@ -88,11 +90,8 @@ def test_consultor_no_asignado_no_puede_programar(api_client_consultor):
 
     response = api_client_consultor.patch(
         f"/api/atenciones/{atencion.pk}/programar/",
-        {
-            "fecha_programada": inicio.isoformat(),
-            "fecha_fin": fin.isoformat()
-        },
-        format="json"
+        {"fecha_programada": inicio.isoformat(), "fecha_fin": fin.isoformat()},
+        format="json",
     )
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
@@ -108,11 +107,8 @@ def test_coordinador_puede_programar_cualquiera(api_client_coordinador):
 
     response = api_client_coordinador.patch(
         f"/api/atenciones/{atencion.pk}/programar/",
-        {
-            "fecha_programada": inicio.isoformat(),
-            "fecha_fin": fin.isoformat()
-        },
-        format="json"
+        {"fecha_programada": inicio.isoformat(), "fecha_fin": fin.isoformat()},
+        format="json",
     )
     assert response.status_code == status.HTTP_200_OK
 
@@ -124,7 +120,9 @@ def test_programar_cruce_retorna_409_con_detalles(api_client_consultor):
 
     # 1. Create an attention that we want to program
     atencion_nueva = AtencionFactory()
-    AtentionConsultant.objects.create(atention=atencion_nueva, consultant_id=user.id, is_leader=True)
+    AtentionConsultant.objects.create(
+        atention=atencion_nueva, consultant_id=user.id, is_leader=True
+    )
 
     # 2. Create an already existing scheduled attention that overlaps
     inicio = datetime.now(timezone.utc) + timedelta(days=2)
@@ -142,14 +140,17 @@ def test_programar_cruce_retorna_409_con_detalles(api_client_consultor):
         f"/api/atenciones/{atencion_nueva.pk}/programar/",
         {
             "fecha_programada": query_inicio.isoformat(),
-            "fecha_fin": query_fin.isoformat()
+            "fecha_fin": query_fin.isoformat(),
         },
-        format="json"
+        format="json",
     )
     assert response.status_code == status.HTTP_409_CONFLICT
     data = response.json()
     assert data["error"] == "cruce_horario"
-    assert "Ya tienes una atención programada en este horario. Por favor selecciona otro." in data["message"]
+    assert (
+        "Ya tienes una atención programada en este horario. Por favor selecciona otro."
+        in data["message"]
+    )
     assert "cruces" in data
     assert len(data["cruces"]) == 1
     assert data["cruces"][0]["consultor_id"] == str(user.id)

@@ -4,7 +4,9 @@ from rest_framework import serializers
 class VerificarCruceInputSerializer(serializers.Serializer):
     fecha_inicio = serializers.DateTimeField(required=True)
     fecha_fin = serializers.DateTimeField(required=True)
-    consultor_id = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    consultor_id = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True
+    )
     atencion_id = serializers.IntegerField(required=False, allow_null=True)
 
     def validate(self, attrs):

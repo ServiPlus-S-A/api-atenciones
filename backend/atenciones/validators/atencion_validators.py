@@ -36,11 +36,13 @@ def validar_cruce_horario(
         if str(consultor_id) not in str_consultor_ids:
             continue
         if fecha_inicio < fin and fecha_fin > inicio:
-            cruzados.append({
-                "consultor_id": str(consultor_id),
-                "fecha_inicio": inicio.isoformat(),
-                "fecha_fin": fin.isoformat()
-            })
+            cruzados.append(
+                {
+                    "consultor_id": str(consultor_id),
+                    "fecha_inicio": inicio.isoformat(),
+                    "fecha_fin": fin.isoformat(),
+                }
+            )
     if cruzados:
         raise CruceHorarioException(cruces=cruzados)
 

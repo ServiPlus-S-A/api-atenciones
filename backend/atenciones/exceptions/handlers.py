@@ -24,6 +24,7 @@ def custom_exception_handler(exc, context):
         if getattr(exc, "field_errors", None) is not None:
             body["field_errors"] = exc.field_errors
         from rest_framework.response import Response
+
         return Response(body, status=exc.status_code)
 
     if isinstance(exc, ValidationError):

@@ -71,13 +71,17 @@ class AtencionListCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get_permissions(self):
-        # Permite acceso AllowAny para simplificar pruebas manuales sin auth
-        return [AllowAny()]
+        if self.request.method == "POST":
+            return [AllowAny()]
+        return super().get_permissions()
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user or not request.user.is_authenticated:
+            request.user = _get_mock_user("1", "CONSULTOR")
+        return super().dispatch(request, *args, **kwargs)
 
     @extend_schema(operation_id="atenciones_list", responses={200: dict})
     def get(self, request):
-        if not request.user or not request.user.is_authenticated:
-            request.user = _get_mock_user("1", "CONSULTOR")
         ser = ListarAtencionInputSerializer(data=request.query_params)
         ser.is_valid(raise_exception=True)
         filtros = AtencionFilterForm.parse_query_params(request.query_params)
@@ -91,8 +95,6 @@ class AtencionListCreateView(APIView):
 
     @extend_schema(request=CrearAtencionInputSerializer, responses={201: dict})
     def post(self, request):
-        if not request.user or not request.user.is_authenticated:
-            request.user = _get_mock_user("1", "COORDINADOR")
         ser = CrearAtencionInputSerializer(data=request.data)
         ser.is_valid(raise_exception=True)
         dto = AtencionService.crear(ser.validated_data, request.user)
@@ -104,15 +106,15 @@ class AtencionListCreateView(APIView):
 class AtencionDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get_permissions(self):
-        return [AllowAny()]
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user or not request.user.is_authenticated:
+            request.user = _get_mock_user("1", "CONSULTOR")
+        return super().dispatch(request, *args, **kwargs)
 
     @extend_schema(
         operation_id="atenciones_retrieve", responses={200: AtencionOutputSerializer}
     )
     def get(self, request, pk):
-        if not request.user or not request.user.is_authenticated:
-            request.user = _get_mock_user("1", "CONSULTOR")
         dto = AtencionService.detalle(pk)
         return Response(AtencionOutputSerializer.from_dto(dto))
 
@@ -120,8 +122,19 @@ class AtencionDetailView(APIView):
 class AtencionProgramarView(APIView):
     permission_classes = [IsAuthenticated, IsOwnerConsultorOrCoordinador]
 
-    def get_permissions(self):
-        return [AllowAny()]
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user or not request.user.is_authenticated:
+            pk = kwargs.get("pk")
+            if pk:
+                try:
+                    atencion_obj = Atention.objects.get(pk=pk)
+                    from atenciones.models import AtentionConsultant
+                    first_consultant = AtentionConsultant.objects.filter(atention=atencion_obj).first()
+                    mock_id = first_consultant.consultant_id if first_consultant else "1"
+                    request.user = _get_mock_user(mock_id, "CONSULTOR")
+                except Atention.DoesNotExist:
+                    pass
+        return super().dispatch(request, *args, **kwargs)
 
     @extend_schema(
         summary="Programar/Reagendar fecha y hora de atención",
@@ -151,13 +164,6 @@ class AtencionProgramarView(APIView):
             atencion_obj = Atention.objects.get(pk=pk)
         except Atention.DoesNotExist:
             raise AtencionNoEncontrada()
-
-        if not request.user or not request.user.is_authenticated:
-            from atenciones.models import AtentionConsultant
-            first_consultant = AtentionConsultant.objects.filter(atention=atencion_obj).first()
-            mock_id = first_consultant.consultant_id if first_consultant else "1"
-            request.user = _get_mock_user(mock_id, "CONSULTOR")
-
         self.check_object_permissions(request, atencion_obj)
 
         ser = ProgramarAtencionInputSerializer(data=request.data)
@@ -169,8 +175,19 @@ class AtencionProgramarView(APIView):
 class AtencionFinalizarView(APIView):
     permission_classes = [IsAuthenticated, IsConsultor, IsOwnerConsultorOrCoordinador]
 
-    def get_permissions(self):
-        return [AllowAny()]
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user or not request.user.is_authenticated:
+            pk = kwargs.get("pk")
+            if pk:
+                try:
+                    atencion_obj = Atention.objects.get(pk=pk)
+                    from atenciones.models import AtentionConsultant
+                    first_consultant = AtentionConsultant.objects.filter(atention=atencion_obj).first()
+                    mock_id = first_consultant.consultant_id if first_consultant else "1"
+                    request.user = _get_mock_user(mock_id, "CONSULTOR")
+                except Atention.DoesNotExist:
+                    pass
+        return super().dispatch(request, *args, **kwargs)
 
     @extend_schema(
         request=FinalizarAtencionInputSerializer,
@@ -181,13 +198,6 @@ class AtencionFinalizarView(APIView):
             atencion_obj = Atention.objects.get(pk=pk)
         except Atention.DoesNotExist:
             raise AtencionNoEncontrada()
-
-        if not request.user or not request.user.is_authenticated:
-            from atenciones.models import AtentionConsultant
-            first_consultant = AtentionConsultant.objects.filter(atention=atencion_obj).first()
-            mock_id = first_consultant.consultant_id if first_consultant else "1"
-            request.user = _get_mock_user(mock_id, "CONSULTOR")
-
         self.check_object_permissions(request, atencion_obj)
 
         ser = FinalizarAtencionInputSerializer(data=request.data)
@@ -199,15 +209,15 @@ class AtencionFinalizarView(APIView):
 class AtencionAnularView(APIView):
     permission_classes = [IsAuthenticated, IsCoordinador]
 
-    def get_permissions(self):
-        return [AllowAny()]
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user or not request.user.is_authenticated:
+            request.user = _get_mock_user("1", "COORDINADOR")
+        return super().dispatch(request, *args, **kwargs)
 
     @extend_schema(
         request=AnularAtencionInputSerializer, responses={200: AtencionOutputSerializer}
     )
     def patch(self, request, pk):
-        if not request.user or not request.user.is_authenticated:
-            request.user = _get_mock_user("1", "COORDINADOR")
         ser = AnularAtencionInputSerializer(data=request.data)
         ser.is_valid(raise_exception=True)
         dto = AtencionService.anular(pk, ser.validated_data, request.user)
@@ -217,8 +227,23 @@ class AtencionAnularView(APIView):
 class AtencionVerificarCruceView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get_permissions(self):
-        return [AllowAny()]
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user or not request.user.is_authenticated:
+            atencion_id = request.GET.get("atencion_id")
+            consultor_id = request.GET.get("consultor_id")
+            mock_id = "1"
+            if atencion_id:
+                try:
+                    atencion = Atention.objects.get(pk=atencion_id)
+                    first = atencion.consultants_rel.first()
+                    if first:
+                        mock_id = first.consultant_id
+                except Atention.DoesNotExist:
+                    pass
+            elif consultor_id:
+                mock_id = consultor_id
+            request.user = _get_mock_user(mock_id, "CONSULTOR")
+        return super().dispatch(request, *args, **kwargs)
 
     @extend_schema(
         parameters=[VerificarCruceInputSerializer],
@@ -246,10 +271,6 @@ class AtencionVerificarCruceView(APIView):
                 else:
                     consultor_id = "1"
             consultor_ids = [consultor_id]
-
-        if not request.user or not request.user.is_authenticated:
-            mock_id = consultor_ids[0] if consultor_ids else "1"
-            request.user = _get_mock_user(mock_id, "CONSULTOR")
 
         cruces = AtencionRepository.buscar_cruces(
             consultor_ids=consultor_ids,

@@ -54,9 +54,16 @@ class AnticipacionInsuficiente(BaseAtencionException):
 class CruceHorarioException(BaseAtencionException):
     status_code = status.HTTP_409_CONFLICT
     default_code = "cruce_horario"
-    default_detail = "Ya tienes una atención programada en este horario. Por favor selecciona otro."
+    default_detail = (
+        "Ya tienes una atención programada en este horario. Por favor selecciona otro."
+    )
 
-    def __init__(self, detail: str | None = None, code: str | None = None, cruces: list | None = None) -> None:
+    def __init__(
+        self,
+        detail: str | None = None,
+        code: str | None = None,
+        cruces: list | None = None,
+    ) -> None:
         self.cruces = cruces
         super().__init__(detail=detail, code=code)
 
