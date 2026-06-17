@@ -39,6 +39,7 @@ from atenciones.repositories.atencion_repository import AtencionRepository
 
 def _get_mock_user(user_id, rol="CONSULTOR"):
     from django.conf import settings
+
     mock_responses = getattr(settings, "PARAMETRIZACION_MOCK_RESPONSES", None)
     if mock_responses:
         user_mock = mock_responses.get(str(user_id))
@@ -52,6 +53,7 @@ def _get_mock_user(user_id, rol="CONSULTOR"):
             self.id = str(id)
             self.rol = rol
             self.is_authenticated = True
+
     return FallbackMockUser(user_id, rol)
 
 
@@ -129,8 +131,13 @@ class AtencionProgramarView(APIView):
                 try:
                     atencion_obj = Atention.objects.get(pk=pk)
                     from atenciones.models import AtentionConsultant
-                    first_consultant = AtentionConsultant.objects.filter(atention=atencion_obj).first()
-                    mock_id = first_consultant.consultant_id if first_consultant else "1"
+
+                    first_consultant = AtentionConsultant.objects.filter(
+                        atention=atencion_obj
+                    ).first()
+                    mock_id = (
+                        first_consultant.consultant_id if first_consultant else "1"
+                    )
                     request.user = _get_mock_user(mock_id, "CONSULTOR")
                 except Atention.DoesNotExist:
                     pass
@@ -153,11 +160,11 @@ class AtencionProgramarView(APIView):
                 description="Ejemplo con fechas futuras válidas alineadas a bloques de 30 minutos, donde la fecha de fin es posterior.",
                 value={
                     "fecha_programada": "2026-06-20T10:00:00Z",
-                    "fecha_fin": "2026-06-20T11:00:00Z"
+                    "fecha_fin": "2026-06-20T11:00:00Z",
                 },
                 request_only=True,
             )
-        ]
+        ],
     )
     def patch(self, request, pk):
         try:
@@ -182,8 +189,13 @@ class AtencionFinalizarView(APIView):
                 try:
                     atencion_obj = Atention.objects.get(pk=pk)
                     from atenciones.models import AtentionConsultant
-                    first_consultant = AtentionConsultant.objects.filter(atention=atencion_obj).first()
-                    mock_id = first_consultant.consultant_id if first_consultant else "1"
+
+                    first_consultant = AtentionConsultant.objects.filter(
+                        atention=atencion_obj
+                    ).first()
+                    mock_id = (
+                        first_consultant.consultant_id if first_consultant else "1"
+                    )
                     request.user = _get_mock_user(mock_id, "CONSULTOR")
                 except Atention.DoesNotExist:
                     pass
@@ -261,7 +273,9 @@ class AtencionVerificarCruceView(APIView):
         if atencion_id:
             try:
                 atencion = Atention.objects.get(pk=atencion_id)
-                consultor_ids = [rel.consultant_id for rel in atencion.consultants_rel.all()]
+                consultor_ids = [
+                    rel.consultant_id for rel in atencion.consultants_rel.all()
+                ]
             except Atention.DoesNotExist:
                 raise AtencionNoEncontrada()
         else:
@@ -280,17 +294,19 @@ class AtencionVerificarCruceView(APIView):
         )
 
         if cruces:
-            return Response({
-                "cruce": True,
-                "mensaje": "Ya tienes una atención programada en este horario. Por favor selecciona otro.",
-                "cruces": [
-                    {
-                        "consultor_id": cid,
-                        "fecha_inicio": start.isoformat(),
-                        "fecha_fin": end.isoformat()
-                    }
-                    for cid, start, end in cruces
-                ]
-            })
+            return Response(
+                {
+                    "cruce": True,
+                    "mensaje": "Ya tienes una atención programada en este horario. Por favor selecciona otro.",
+                    "cruces": [
+                        {
+                            "consultor_id": cid,
+                            "fecha_inicio": start.isoformat(),
+                            "fecha_fin": end.isoformat(),
+                        }
+                        for cid, start, end in cruces
+                    ],
+                }
+            )
 
         return Response({"cruce": False})
