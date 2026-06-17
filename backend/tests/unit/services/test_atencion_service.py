@@ -25,8 +25,8 @@ def _fechas_programacion():
 
 
 @pytest.mark.django_db
-@patch("atenciones.services.atencion_service.solicitudes_client.get")
-@patch("atenciones.services.atencion_service.parametrizacion_client.get")
+@patch("atenciones.services.atencion_service.solicitudes_client.obtener_solicitud")
+@patch("atenciones.services.atencion_service.parametrizacion_client.obtener_consultor")
 def test_crear_valida_solicitud_pendiente(mock_param, mock_sol, api_client_coordinador):
     mock_sol.return_value = SolicitudInfo(id=1, estado="Pendiente", consultor_ids=[1])
     from atenciones.integrations.parametrizacion_client import ConsultorInfo
@@ -57,12 +57,12 @@ def test_transicion_invalida_finalizada_a_anulada(api_client_coordinador):
 
 
 @pytest.mark.django_db
-def test_programar_falla_menos_24h(api_client_coordinador):
+def test_programar_falla_fecha_pasada(api_client_coordinador):
     from datetime import datetime, timedelta, timezone
 
     atencion = AtencionFactory()
     user = api_client_coordinador.test_user
-    inicio = datetime.now(timezone.utc) + timedelta(hours=2)
+    inicio = datetime.now(timezone.utc) - timedelta(minutes=30)
     fin = inicio + timedelta(hours=1)
     with pytest.raises(AnticipacionInsuficiente):
         AtencionService.programar(
@@ -92,7 +92,7 @@ def test_programar_ok(mock_transicion, mock_delay, api_client_coordinador):
 
 
 @pytest.mark.django_db
-@patch("atenciones.services.atencion_service.solicitudes_client.get")
+@patch("atenciones.services.atencion_service.solicitudes_client.obtener_solicitud")
 def test_crear_rechaza_solicitud_no_pendiente(mock_sol, api_client_coordinador):
     mock_sol.return_value = SolicitudInfo(id=1, estado="Cerrada", consultor_ids=[1])
     user = api_client_coordinador.test_user
@@ -108,8 +108,8 @@ def test_crear_rechaza_solicitud_no_pendiente(mock_sol, api_client_coordinador):
 
 
 @pytest.mark.django_db
-@patch("atenciones.services.atencion_service.solicitudes_client.get")
-@patch("atenciones.services.atencion_service.parametrizacion_client.get")
+@patch("atenciones.services.atencion_service.solicitudes_client.obtener_solicitud")
+@patch("atenciones.services.atencion_service.parametrizacion_client.obtener_consultor")
 def test_crear_rechaza_consultor_no_disponible(
     mock_param, mock_sol, api_client_coordinador
 ):
