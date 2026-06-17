@@ -2,11 +2,13 @@ from unittest.mock import patch
 
 import pytest
 import requests
+from django.test import override_settings
 
 from atenciones.integrations.solicitudes_client import SolicitudesClient
 
 
 @pytest.mark.unit
+@override_settings(SOLICITUDES_MOCK_RESPONSES=None)
 @patch("atenciones.integrations.base_client.requests.get")
 def test_get_retorna_info(mock_get):
     mock_get.return_value.status_code = 200
@@ -22,6 +24,7 @@ def test_get_retorna_info(mock_get):
 
 
 @pytest.mark.unit
+@override_settings(SOLICITUDES_MOCK_RESPONSES=None)
 @patch(
     "atenciones.integrations.base_client.requests.get",
     side_effect=requests.RequestException("down"),

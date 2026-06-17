@@ -24,10 +24,12 @@ def validar_bloques_30min(fecha_inicio: datetime, fecha_fin: datetime) -> None:
 
 
 def validar_cruce_horario(
-    consultor_ids: list[int],
+    consultor_ids: list[int] | list[str],
     fecha_inicio: datetime,
     fecha_fin: datetime,
-    cruces_existentes: list[tuple[int, datetime, datetime]] | None = None,
+    cruces_existentes: list[tuple[int, datetime, datetime]]
+    | list[tuple[str, datetime, datetime]]
+    | None = None,
 ) -> None:
     cruces_existentes = cruces_existentes or []
     for consultor_id, inicio, fin in cruces_existentes:

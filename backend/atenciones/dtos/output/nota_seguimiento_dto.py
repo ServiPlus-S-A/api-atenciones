@@ -7,7 +7,7 @@ from atenciones.models import NotaSeguimiento
 @dataclass(frozen=True)
 class MonitoringNoteDTO:
     id: int
-    consultant_id: int
+    consultant_id: str
     content: str
     created_at: datetime
 
