@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from atenciones.constants import ERR_ANTICIPATION, VALID_TRANSACTIONS
 from atenciones.exceptions.custom_exceptions import (
@@ -8,10 +8,8 @@ from atenciones.exceptions.custom_exceptions import (
 )
 
 
-def validar_anticipacion_24h(fecha_programada: datetime) -> None:
-    if fecha_programada - datetime.now(tz=fecha_programada.tzinfo) < timedelta(
-        hours=24
-    ):
+def validar_no_anterior_fecha_actual(fecha_programada: datetime) -> None:
+    if fecha_programada < datetime.now(tz=fecha_programada.tzinfo):
         raise AnticipacionInsuficiente(ERR_ANTICIPATION)
 
 
@@ -32,11 +30,19 @@ def validar_cruce_horario(
     | None = None,
 ) -> None:
     cruces_existentes = cruces_existentes or []
+    cruzados = []
+    str_consultor_ids = [str(cid) for cid in consultor_ids]
     for consultor_id, inicio, fin in cruces_existentes:
-        if consultor_id not in consultor_ids:
+        if str(consultor_id) not in str_consultor_ids:
             continue
         if fecha_inicio < fin and fecha_fin > inicio:
-            raise CruceHorarioException()
+            cruzados.append({
+                "consultor_id": str(consultor_id),
+                "fecha_inicio": inicio.isoformat(),
+                "fecha_fin": fin.isoformat()
+            })
+    if cruzados:
+        raise CruceHorarioException(cruces=cruzados)
 
 
 def validar_transicion_estado(estado_actual: str, nuevo_estado: str) -> None:

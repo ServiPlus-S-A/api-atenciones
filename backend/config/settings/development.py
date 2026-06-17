@@ -40,6 +40,8 @@ class MockConsultor:
         self.aptitudes = ()
         self.nombre = f"Consultor Mock {id}"
         self.role = "CONSULTOR"
+        self.rol = "CONSULTOR"
+        self.is_authenticated = True
 
 
 class DefaultMockDict(dict):
