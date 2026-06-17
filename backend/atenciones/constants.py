@@ -36,6 +36,23 @@ ERR_SCHEDULE_OVERLAP = "Existe cruce de horario para uno o más consultores."
 ERR_MINIMUM_NOTE = "El contenido de la nota debe tener al menos 15 caracteres."
 ERR_MINIMUM_FINAL_NOTE = "Las notas finales deben tener al menos 20 caracteres."
 
+# HU-02: mensajes de error específicos
+ERR_SOLICITUD_NO_AUTORIZADA = (
+    "La solicitud ingresada no existe en el sistema o no está autorizada para atención."
+)
+ERR_MENSAJE_PRELIMINAR = "El diagnostico debe tener entre 15 y 1000 caracteres."
+ERR_CONSULTOR_NO_ENCONTRADO = "Consultor {} no encontrado en el sistema."
+ERR_CONSULTOR_NO_DISPONIBLE = "Consultor {} no está disponible."
+ERR_CONSULTOR_SIN_APTITUD = (
+    "Consultor {} no tiene la aptitud requerida para este servicio."
+)
+ERR_CONSULTOR_DUPLICADO = (
+    "La lista de consultor_ids contiene identificadores duplicados."
+)
+
+# Actor técnico mientras no hay auth real activa
+ACTOR_TECNICO_DEFAULT = "SYSTEM"
+
 TTL_LISTED_CACHE = 30
 
 # Backwards compatibility: Spanish names

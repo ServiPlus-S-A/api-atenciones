@@ -26,9 +26,17 @@ class TransicionInvalidaException(BaseAtencionException):
 
 
 class SolicitudNoAutorizada(BaseAtencionException):
-    status_code = status.HTTP_403_FORBIDDEN
+    # HU-02: 400 Bad Request (solicitud no existe o no está en estado PENDIENTE)
+    status_code = status.HTTP_400_BAD_REQUEST
     default_code = "solicitud_no_autorizada"
-    default_detail = "No autorizado para esta solicitud."
+    default_detail = "La solicitud ingresada no existe en el sistema o no está autorizada para atención."
+
+
+class ConsultorNoEncontrado(BaseAtencionException):
+    # HU-02: 400 cuando el consultor_id no existe en Parametrización
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_code = "consultor_no_encontrado"
+    default_detail = "Consultor no encontrado en el sistema."
 
 
 class ConsultorNoDisponible(BaseAtencionException):

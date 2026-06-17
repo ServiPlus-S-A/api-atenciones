@@ -1,6 +1,6 @@
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -46,6 +46,11 @@ def _paginate(items: list, page: int, page_size: int) -> dict:
 class AtencionListCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
+    def get_permissions(self):
+        if self.request.method == "POST":
+            return [AllowAny()]
+        return super().get_permissions()
+
     @extend_schema(operation_id="atenciones_list", responses={200: dict})
     def get(self, request):
         ser = ListarAtencionInputSerializer(data=request.query_params)
@@ -61,8 +66,7 @@ class AtencionListCreateView(APIView):
 
     @extend_schema(request=CrearAtencionInputSerializer, responses={201: dict})
     def post(self, request):
-        self.permission_classes = [IsAuthenticated, IsCoordinador]
-        self.check_permissions(request)
+        # TODO: [IsAuthenticated, IsCoordinador] cuando la autenticación por API Gateway esté activa.
         ser = CrearAtencionInputSerializer(data=request.data)
         ser.is_valid(raise_exception=True)
         dto = AtencionService.crear(ser.validated_data, request.user)

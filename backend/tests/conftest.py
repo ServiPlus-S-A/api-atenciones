@@ -44,5 +44,8 @@ def mock_cache():
             {key: value}
         )
         mock.delete.side_effect = lambda key: cache_dict.pop(key, None)
+        mock.delete_many.side_effect = lambda keys: [
+            cache_dict.pop(key, None) for key in keys
+        ]
         mock.clear.side_effect = lambda: cache_dict.clear()
         yield mock

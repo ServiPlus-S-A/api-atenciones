@@ -41,35 +41,53 @@ class AtencionRepository:
         if estado := filtros.get("estado"):
             qs = qs.filter(status=estado)
         if request_id := filtros.get("request_id"):
-            qs = qs.filter(request_id=request_id)
+            qs = qs.filter(request_id=str(request_id))
         if fecha_inicio := filtros.get("fecha_inicio"):
             qs = qs.filter(scheduled_date__date__gte=fecha_inicio)
         if fecha_fin := filtros.get("fecha_fin"):
             qs = qs.filter(scheduled_date__date__lte=fecha_fin)
         if consultant_id := filtros.get("consultor_id"):
-            qs = qs.filter(consultants_rel__consultant_id=consultant_id)
+            qs = qs.filter(consultants_rel__consultant_id=str(consultant_id))
         return [AtencionDTO.from_orm(a) for a in qs.distinct()]
 
     @classmethod
-    def guardar(cls, input_dto: CrearAtencionInputDTO) -> AtencionDTO:
+    def guardar(
+        cls, input_dto: CrearAtencionInputDTO, consultores_info=None
+    ) -> AtencionDTO:
         atention = Atention.objects.create(
-            request_id=input_dto.solicitud_id,
-            created_by=input_dto.creado_por_id,
+            request_id=str(input_dto.solicitud_id),
+            created_by=str(input_dto.creado_por_id)
+            if input_dto.creado_por_id
+            else None,
             status=EstadoAtencion.AGENDADA,
         )
         for i, consultor_id in enumerate(input_dto.consultor_ids):
             AtentionConsultant.objects.create(
                 atention=atention,
-                consultant_id=consultor_id,
+                consultant_id=str(consultor_id),
                 is_leader=(i == 0),
             )
         if input_dto.mensaje_preliminar:
+            leader_id = (
+                str(input_dto.consultor_ids[0]) if input_dto.consultor_ids else None
+            )
+            author_id = (
+                str(input_dto.creado_por_id) if input_dto.creado_por_id else leader_id
+            )
             MonitoringNote.objects.create(
                 atention=atention,
-                consultant_id=input_dto.creado_por_id,
+                consultant_id=author_id,
                 content=input_dto.mensaje_preliminar,
             )
-        return AtencionDTO.from_orm(cls._base_qs().get(pk=atention.pk))
+        nombres_consultores = {
+            str(info.id): info.nombre
+            for info in (consultores_info or [])
+            if getattr(info, "nombre", None)
+        }
+        return AtencionDTO.from_orm(
+            cls._base_qs().get(pk=atention.pk),
+            nombres_consultores=nombres_consultores,
+        )
 
     @classmethod
     def programar(cls, input_dto: ProgramarAtencionInputDTO) -> AtencionDTO:
@@ -101,13 +119,14 @@ class AtencionRepository:
     @classmethod
     def buscar_cruces(
         cls,
-        consultor_ids: list[int],
+        consultor_ids: list[str] | list[int],
         fecha_inicio: datetime,
         fecha_fin: datetime,
         excluir_atencion_id: int | None = None,
-    ) -> list[tuple[int, datetime, datetime]]:
+    ) -> list[tuple[str, datetime, datetime]]:
+        str_consultor_ids = [str(cid) for cid in consultor_ids]
         qs = Atention.objects.filter(
-            consultants_rel__consultant_id__in=consultor_ids,
+            consultants_rel__consultant_id__in=str_consultor_ids,
             scheduled_date__isnull=False,
             closing_date__isnull=False,
         ).exclude(status=EstadoAtencion.ANULADA)
@@ -119,8 +138,10 @@ class AtencionRepository:
         result = []
         for a in qs.prefetch_related("consultants_rel"):
             for rel in a.consultants_rel.all():
-                if rel.consultant_id in consultor_ids:
+                if str(rel.consultant_id) in str_consultor_ids:
                     if a.scheduled_date is None or a.closing_date is None:
                         continue
-                    result.append((rel.consultant_id, a.scheduled_date, a.closing_date))
+                    result.append(
+                        (str(rel.consultant_id), a.scheduled_date, a.closing_date)
+                    )
         return result
