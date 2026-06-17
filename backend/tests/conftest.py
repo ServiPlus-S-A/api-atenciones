@@ -1,8 +1,9 @@
 import pytest
+from django.core.cache import caches
 from django.contrib.auth.models import User
+from django.test import override_settings
 from rest_framework.test import APIClient
 from typing import Any, cast
-from unittest.mock import patch
 
 from atenciones.constants import Rol
 
@@ -34,18 +35,23 @@ def api_client_cliente(db):
 
 
 @pytest.fixture(autouse=True)
-def mock_cache():
-    """Mockea django.core.cache.cache para evitar conexiones a Redis en tests."""
-    with patch("django.core.cache.cache") as mock:
-        # Configurar el mock para que actúe como un dict en memoria
-        cache_dict = {}
-        mock.get.side_effect = lambda key, default=None: cache_dict.get(key, default)
-        mock.set.side_effect = lambda key, value, timeout=None: cache_dict.update(
-            {key: value}
+def isolated_test_cache(monkeypatch):
+    """Usa LocMemCache aunque el entorno cargue variables de Redis."""
+    cache_settings = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "tests",
+        }
+    }
+    with override_settings(CACHES=cache_settings):
+        caches.close_all()
+        test_cache = caches["default"]
+        monkeypatch.setattr("atenciones.services.atencion_service.cache", test_cache)
+        monkeypatch.setattr(
+            "atenciones.services.atencion_cache_service.cache", test_cache
         )
-        mock.delete.side_effect = lambda key: cache_dict.pop(key, None)
-        mock.delete_many.side_effect = lambda keys: [
-            cache_dict.pop(key, None) for key in keys
-        ]
-        mock.clear.side_effect = lambda: cache_dict.clear()
-        yield mock
+        monkeypatch.setattr("atenciones.views.health_view.cache", test_cache)
+        monkeypatch.setattr("atenciones.tasks.notificacion_tasks.cache", test_cache)
+        yield test_cache
+        test_cache.clear()
+        caches.close_all()

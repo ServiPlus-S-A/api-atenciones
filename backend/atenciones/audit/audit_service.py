@@ -16,7 +16,7 @@ class AuditService:
     def registrar(
         cls,
         operation: str,
-        actor_id: int,
+        actor_id: str | int,
         actor_role: str,
         atention_id: int | None,
         payload: dict,
@@ -24,7 +24,7 @@ class AuditService:
     ) -> AuditLog:
         return AuditLog.objects.create(
             operation=operation,
-            actor_id=actor_id,
+            actor_id=str(actor_id),
             actor_role=actor_role,
             atention_id=atention_id,
             payload_hash_sha256=cls._hash_payload(payload),
