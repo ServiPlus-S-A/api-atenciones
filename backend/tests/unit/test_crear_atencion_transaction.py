@@ -44,16 +44,10 @@ def test_crear_atencion_transaccion_view_serializer_service_repository_output_se
     data = response.json()
 
     assert isinstance(data["id"], int)
-    assert data["estado"] == EstadoAtencion.AGENDADA
-    assert data["solicitud_id"] == solicitud_id
     assert data["status"] == EstadoAtencion.AGENDADA
     assert data["request_id"] == solicitud_id
     assert data["scheduled_date"] is None
     assert data["closing_date"] is None
-    assert data["notas_finales"] is None
-    assert data["consultores"][0]["id"] == consultor_id
-    assert data["consultores"][0]["es_lider"] is True
-    assert data["consultores"][0]["nombre"] == f"Consultant {consultor_id}"
     assert data["consultants"][0]["id"] == consultor_id
     assert data["consultants"][0]["is_leader"] is True
     assert data["consultants"][0]["role"] == "CONSULTOR"
