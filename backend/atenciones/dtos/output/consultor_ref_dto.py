@@ -3,9 +3,10 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class ConsultantRefDTO:
-    id: int
+    id: str
     name: str
     is_leader: bool
+    role: str = "CONSULTOR"
 
     # Alias en español para integrarse con serializers existentes.
     @property

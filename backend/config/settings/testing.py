@@ -16,19 +16,22 @@ DEBUG = True
 # Debes proveer DATABASE_URL vía entorno (idealmente apuntando al pooler :6543).
 _pooler_url = os.environ.get("DATABASE_URL")
 if not _pooler_url:
-    raise RuntimeError(
-        "Falta DATABASE_URL para ejecutar tests (usa el pooler de Supabase :6543)."
-    )
-
-DATABASES = {
-    "default": dj_database_url.parse(
-        _pooler_url,
-        conn_max_age=0,
-        ssl_require=True,
-    )
-}
-DATABASES["default"].setdefault("OPTIONS", {})
-DATABASES["default"]["OPTIONS"]["sslmode"] = "require"
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": ":memory:",
+        }
+    }
+else:
+    DATABASES = {
+        "default": dj_database_url.parse(
+            _pooler_url,
+            conn_max_age=0,
+            ssl_require=True,
+        )
+    }
+    DATABASES["default"].setdefault("OPTIONS", {})
+    DATABASES["default"]["OPTIONS"]["sslmode"] = "require"
 
 # Cache en memoria local para tests (sin Redis)
 CACHES = {

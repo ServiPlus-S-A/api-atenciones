@@ -9,7 +9,7 @@ from atenciones.services.atencion_service import AtencionService
 
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
-@patch("atenciones.services.atencion_service.solicitudes_client.get")
+@patch("atenciones.services.atencion_service.solicitudes_client.obtener_solicitud")
 def test_fallback_retorna_503_controlado(mock_get, api_client_coordinador):
     mock_get.return_value = SolicitudInfo(id=1, estado="DESCONOCIDO", consultor_ids=[])
     user = api_client_coordinador.test_user
