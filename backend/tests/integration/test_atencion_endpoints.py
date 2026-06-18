@@ -53,7 +53,9 @@ def test_paginacion_cambia_paginas_y_devuelve_orden_descendente(api_client_coord
         created_at=datetime.now(timezone.utc) - timedelta(days=1)
     )
 
-    response = api_client_coordinador.get("/api/atenciones/", {"page_size": 1, "page": 1})
+    response = api_client_coordinador.get(
+        "/api/atenciones/", {"page_size": 1, "page": 1}
+    )
     assert response.status_code == 200
     data = response.json()
     assert data["page"] == 1
@@ -61,7 +63,9 @@ def test_paginacion_cambia_paginas_y_devuelve_orden_descendente(api_client_coord
     assert data["total_pages"] == 2
     assert data["results"][0]["id"] == newer.pk
 
-    second_page = api_client_coordinador.get("/api/atenciones/", {"page_size": 1, "page": 2})
+    second_page = api_client_coordinador.get(
+        "/api/atenciones/", {"page_size": 1, "page": 2}
+    )
     assert second_page.status_code == 200
     assert second_page.json()["results"][0]["id"] == older.pk
 
