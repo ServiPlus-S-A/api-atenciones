@@ -9,7 +9,10 @@ from atenciones.constants import EstadoAtencion
 
 
 class Atention(models.Model):
-    request_id: models.IntegerField[int, int] = models.IntegerField(db_index=True)
+    # HU-02: request_id es UUID string del módulo de Solicitudes externo
+    request_id: models.CharField[str, str] = models.CharField(
+        max_length=64, db_index=True
+    )
     status: models.CharField[str, str] = models.CharField(
         max_length=20,
         choices=[(e.value, e.value) for e in EstadoAtencion],
@@ -28,7 +31,10 @@ class Atention(models.Model):
     cancellation_reason: models.TextField[str | None, str | None] = models.TextField(
         null=True, blank=True
     )
-    created_by: models.IntegerField[int, int] = models.IntegerField()
+    # HU-02: created_by es opcional mientras auth/RBAC no esté activo
+    created_by: models.CharField[str | None, str | None] = models.CharField(
+        max_length=128, null=True, blank=True
+    )
     created_at: models.DateTimeField[datetime, datetime] = models.DateTimeField(
         auto_now_add=True
     )
@@ -45,6 +51,7 @@ class Atention(models.Model):
         db_table = "atention"
         indexes = [
             models.Index(fields=["status", "scheduled_date"]),
+            models.Index(fields=["created_at"]),
         ]
 
     def __str__(self):

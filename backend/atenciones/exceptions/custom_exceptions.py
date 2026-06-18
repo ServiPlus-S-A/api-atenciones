@@ -26,9 +26,17 @@ class TransicionInvalidaException(BaseAtencionException):
 
 
 class SolicitudNoAutorizada(BaseAtencionException):
-    status_code = status.HTTP_403_FORBIDDEN
+    # HU-02: 400 Bad Request (solicitud no existe o no está en estado PENDIENTE)
+    status_code = status.HTTP_400_BAD_REQUEST
     default_code = "solicitud_no_autorizada"
-    default_detail = "No autorizado para esta solicitud."
+    default_detail = "La solicitud ingresada no existe en el sistema o no está autorizada para atención."
+
+
+class ConsultorNoEncontrado(BaseAtencionException):
+    # HU-02: 400 cuando el consultor_id no existe en Parametrización
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_code = "consultor_no_encontrado"
+    default_detail = "Consultor no encontrado en el sistema."
 
 
 class ConsultorNoDisponible(BaseAtencionException):
@@ -40,13 +48,24 @@ class ConsultorNoDisponible(BaseAtencionException):
 class AnticipacionInsuficiente(BaseAtencionException):
     status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
     default_code = "anticipacion_insuficiente"
-    default_detail = "Se requiere al menos 24 horas de anticipación."
+    default_detail = "No se permite seleccionar fechas anteriores a la fecha actual."
 
 
 class CruceHorarioException(BaseAtencionException):
     status_code = status.HTTP_409_CONFLICT
     default_code = "cruce_horario"
-    default_detail = "Existe cruce de horario para los consultores."
+    default_detail = (
+        "Ya tienes una atención programada en este horario. Por favor selecciona otro."
+    )
+
+    def __init__(
+        self,
+        detail: str | None = None,
+        code: str | None = None,
+        cruces: list | None = None,
+    ) -> None:
+        self.cruces = cruces
+        super().__init__(detail=detail, code=code)
 
 
 class ServicioExternoNoDisponible(BaseAtencionException):
