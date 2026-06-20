@@ -61,8 +61,11 @@ def _paginate(items: list, page: int, page_size: int) -> dict:
     start = (page - 1) * page_size
     end = start + page_size
     page_items = items[start:end]
+    count = len(items)
+    total_pages = (count + page_size - 1) // page_size if count else 0
     return {
-        "count": len(items),
+        "count": count,
+        "total_pages": total_pages,
         "page": page,
         "page_size": page_size,
         "results": [AtencionOutputSerializer.from_dto(d) for d in page_items],
