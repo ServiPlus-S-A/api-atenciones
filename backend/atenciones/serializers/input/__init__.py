@@ -13,6 +13,9 @@ from atenciones.serializers.input.listar_atencion_input_serializer import (
 from atenciones.serializers.input.programar_atencion_input_serializer import (
     ProgramarAtencionInputSerializer,
 )
+from atenciones.serializers.input.verificar_cruce_input_serializer import (
+    VerificarCruceInputSerializer,
+)
 
 __all__ = [
     "CrearAtencionInputSerializer",
@@ -20,4 +23,5 @@ __all__ = [
     "FinalizarAtencionInputSerializer",
     "AnularAtencionInputSerializer",
     "ListarAtencionInputSerializer",
+    "VerificarCruceInputSerializer",
 ]

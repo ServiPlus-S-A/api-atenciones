@@ -57,12 +57,12 @@ def test_transicion_invalida_finalizada_a_anulada(api_client_coordinador):
 
 
 @pytest.mark.django_db
-def test_programar_falla_menos_24h(api_client_coordinador):
+def test_programar_falla_fecha_pasada(api_client_coordinador):
     from datetime import datetime, timedelta, timezone
 
     atencion = AtencionFactory()
     user = api_client_coordinador.test_user
-    inicio = datetime.now(timezone.utc) + timedelta(hours=2)
+    inicio = datetime.now(timezone.utc) - timedelta(minutes=30)
     fin = inicio + timedelta(hours=1)
     with pytest.raises(AnticipacionInsuficiente):
         AtencionService.programar(

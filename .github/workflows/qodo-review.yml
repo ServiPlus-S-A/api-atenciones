@@ -13,14 +13,14 @@ jobs:
       issues: write
       contents: read
     container:
-      image: pragent/pr-agent:latest # Mantenemos tu misma imagen de Docker
+      image: pragent/pr-agent:latest # Mantenemos la misma imagen de Docker
     steps:
       - name: Ejecutar comandos de Qodo
         env:
           # 1. Forzar proveedor y pasar tokens de forma segura
           CONFIG__GIT_PROVIDER: "github"
           OPENAI__KEY: ${{ secrets.OPENAI_API_KEY }}
-          GITHUB__TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB__USER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
           # GitHub provee la URL del PR automáticamente
           PR_URL: ${{ github.event.pull_request.html_url }}
