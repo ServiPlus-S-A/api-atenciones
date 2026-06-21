@@ -42,6 +42,8 @@ services:
     depends_on:
       redis-local:
         condition: service_healthy
+    healthcheck:
+      disable: true
     restart: always
 
 
@@ -54,5 +56,7 @@ services:
     depends_on:
       redis-local:
         condition: service_healthy
+    healthcheck:
+      disable: true
     restart: always
 
