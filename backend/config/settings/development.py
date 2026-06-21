@@ -47,6 +47,11 @@ class DefaultMockDict(dict):
         super().__init__()
         self.mock_class = mock_class
 
+    def __eq__(self, other):
+        if not isinstance(other, DefaultMockDict):
+            return NotImplemented
+        return self.mock_class == other.mock_class and dict.__eq__(self, other)
+
     def get(self, key, default=None):
         return self.mock_class(key)
 
