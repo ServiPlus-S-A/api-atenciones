@@ -5,13 +5,19 @@ from atenciones.views.atencion_view import (
     AtencionFinalizarView,
     AtencionListCreateView,
     AtencionProgramarView,
+    AtencionVerificarCruceView,
 )
 from atenciones.views.atencion_detalle_view import AtencionDetalleView
 from atenciones.views.nota_seguimiento_view import NotaListCreateView
 
 urlpatterns = [
     path("atenciones/", AtencionListCreateView.as_view(), name="atencion-list-create"),
-    path("atenciones/<int:pk>/", AtencionDetalleView.as_view(), name="atencion-detail"),
+    path(
+        "atenciones/verificar-cruce/",
+        AtencionVerificarCruceView.as_view(),
+        name="atencion-verificar-cruce",
+    ),
+    path("atenciones/<int:pk>/", AtencionDetailView.as_view(), name="atencion-detail"),
     path(
         "atenciones/<int:pk>/programar/",
         AtencionProgramarView.as_view(),
