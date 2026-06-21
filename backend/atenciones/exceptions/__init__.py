@@ -7,6 +7,8 @@ from atenciones.exceptions.custom_exceptions import (
     ServicioExternoNoDisponible,
     SolicitudNoAutorizada,
     TransicionInvalidaException,
+    AtencionDoesNotExist,
+    AtencionServiceUnavailableError,
 )
 
 __all__ = [
@@ -18,4 +20,6 @@ __all__ = [
     "CruceHorarioException",
     "ServicioExternoNoDisponible",
     "ParametrosFiltroInvalidos",
+    "AtencionDoesNotExist",
+    "AtencionServiceUnavailableError",
 ]

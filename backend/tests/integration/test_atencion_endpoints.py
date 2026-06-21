@@ -33,6 +33,10 @@ def test_detalle_atencion(api_client_coordinador):
     from tests.factories.atencion_factory import AtencionFactory
 
     atencion = AtencionFactory()
-    response = api_client_coordinador.get(f"/api/atenciones/{atencion.pk}/")
+    response = api_client_coordinador.get(
+        f"/api/atenciones/{atencion.pk}/",
+        HTTP_X_USER_ID="coord-uuid-099",
+        HTTP_X_USER_ROLE="COORDINADOR",
+    )
     assert response.status_code == 200
     assert response.json()["id"] == atencion.pk
