@@ -15,15 +15,24 @@ def custom_exception_handler(exc, context):
             detail=str(exc.detail),
             context=context,
         )
-        return _build_response(
-            code=getattr(exc, "default_code", "error"),
-            message=str(exc.detail),
-            status_code=exc.status_code,
-            field_errors=getattr(exc, "field_errors", None),
-        )
+        body = {
+            "error": getattr(exc, "default_code", "error"),
+            "message": str(exc.detail),
+        }
+        if getattr(exc, "cruces", None) is not None:
+            body["cruces"] = exc.cruces
+        if getattr(exc, "field_errors", None) is not None:
+            body["field_errors"] = exc.field_errors
+        from rest_framework.response import Response
+
+        return Response(body, status=exc.status_code)
 
     if isinstance(exc, ValidationError):
-        field_errors = exc.detail if isinstance(exc.detail, dict) else {"non_field_errors": exc.detail}
+        field_errors = (
+            exc.detail
+            if isinstance(exc.detail, dict)
+            else {"non_field_errors": exc.detail}
+        )
         return _build_response(
             code="validation_error",
             message="Error de validación.",

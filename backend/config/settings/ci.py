@@ -2,6 +2,7 @@
 Settings para GitHub Actions y act local.
 Postgres del servicio de CI sin SSL; cache en memoria y Celery eager como en testing.
 """
+
 import os
 
 import dj_database_url
@@ -30,5 +31,7 @@ CACHES = {
 
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
+CELERY_BROKER_URL = "memory://"
+CELERY_RESULT_BACKEND = "cache+memory://"
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"

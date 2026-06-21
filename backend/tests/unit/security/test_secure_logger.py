@@ -16,7 +16,7 @@ def test_registrar_crea_audit_log():
         payload={"clave": "valor"},
     )
     log = AuditLog.objects.get(operation="TEST")
-    assert log.actor_id == 1
+    assert log.actor_id == "1"
     assert log.atention_id == 99
     assert len(log.payload_hash_sha256) == 64
 

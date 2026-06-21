@@ -7,11 +7,11 @@ from .audit_log import AuditLog
 Atencion = Atention
 
 __all__ = [
-	"Atention",
-	"Atencion",
-	"AtentionConsultant",
-	"AtencionConsultor",
-	"MonitoringNote",
-	"NotaSeguimiento",
-	"AuditLog",
+    "Atention",
+    "Atencion",
+    "AtentionConsultant",
+    "AtencionConsultor",
+    "MonitoringNote",
+    "NotaSeguimiento",
+    "AuditLog",
 ]

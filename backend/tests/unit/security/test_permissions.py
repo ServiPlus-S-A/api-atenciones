@@ -21,7 +21,9 @@ def _request_with_user(user):
 @pytest.mark.django_db
 def test_is_coordinador(api_client_coordinador):
     perm = IsCoordinador()
-    assert perm.has_permission(_request_with_user(api_client_coordinador.test_user), None)
+    assert perm.has_permission(
+        _request_with_user(api_client_coordinador.test_user), None
+    )
 
 
 @pytest.mark.django_db
@@ -40,7 +42,9 @@ def test_is_cliente(api_client_cliente):
 def test_owner_consultor_asignado(api_client_consultor):
     atencion = AtencionFactory()
     user = api_client_consultor.test_user
-    AtentionConsultant.objects.create(atention=atencion, consultant_id=user.id, is_leader=True)
+    AtentionConsultant.objects.create(
+        atention=atencion, consultant_id=user.id, is_leader=True
+    )
     perm = IsOwnerConsultorOrCoordinador()
     assert perm.has_object_permission(_request_with_user(user), None, atencion)
 
@@ -60,4 +64,6 @@ def test_owner_consultor_no_asignado(api_client_consultor):
 def test_owner_coordinador_siempre(api_client_coordinador):
     atencion = AtencionFactory()
     perm = IsOwnerConsultorOrCoordinador()
-    assert perm.has_object_permission(_request_with_user(api_client_coordinador.test_user), None, atencion)
+    assert perm.has_object_permission(
+        _request_with_user(api_client_coordinador.test_user), None, atencion
+    )

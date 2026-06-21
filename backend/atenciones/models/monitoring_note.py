@@ -14,9 +14,12 @@ class MonitoringNote(models.Model):
         related_name="notes",
         db_column="atention_fk",
     )
-    consultant_id: models.IntegerField[int, int] = models.IntegerField()
+    # HU-02: consultant_id es UUID string del módulo de Parametrización externo
+    consultant_id: models.CharField[str, str] = models.CharField(max_length=64)
     content: models.TextField[str, str] = models.TextField()
-    created_at: models.DateTimeField[datetime, datetime] = models.DateTimeField(auto_now_add=True)
+    created_at: models.DateTimeField[datetime, datetime] = models.DateTimeField(
+        auto_now_add=True
+    )
 
     class Meta:
         db_table = "monitoring_note"

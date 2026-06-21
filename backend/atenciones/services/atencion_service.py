@@ -1,8 +1,14 @@
 from django.core.cache import cache
 from django.db import transaction
+import requests
 
 from atenciones.audit.audit_service import AuditService
-from atenciones.constants import EstadoAtencion, Rol, TTL_LISTED_CACHE
+from atenciones.constants import (
+    ACTOR_TECNICO_DEFAULT,
+    EstadoAtencion,
+    Rol,
+    TTL_LISTED_CACHE,
+)
 from atenciones.dtos.input.anular_atencion_input_dto import AnularAtencionInputDTO
 from atenciones.dtos.input.crear_atencion_input_dto import CrearAtencionInputDTO
 from atenciones.dtos.input.finalizar_atencion_input_dto import FinalizarAtencionInputDTO
@@ -10,19 +16,21 @@ from atenciones.dtos.input.programar_atencion_input_dto import ProgramarAtencion
 from atenciones.dtos.output.atencion_dto import AtencionDTO
 from atenciones.exceptions.custom_exceptions import (
     ConsultorNoDisponible,
+    ConsultorNoEncontrado,
     ServicioExternoNoDisponible,
     SolicitudNoAutorizada,
 )
 from atenciones.integrations.parametrizacion_client import parametrizacion_client
 from atenciones.integrations.solicitudes_client import solicitudes_client
 from atenciones.repositories.atencion_repository import AtencionRepository
+from atenciones.services.atencion_cache_service import AtencionCacheService
 from atenciones.tasks.notificacion_tasks import (
     enviar_email_anulacion,
     enviar_email_cliente,
     enviar_notificacion_programacion,
 )
 from atenciones.validators.atencion_validators import (
-    validar_anticipacion_24h,
+    validar_no_anterior_fecha_actual,
     validar_bloques_30min,
     validar_cruce_horario,
     validar_longitud_notas,
@@ -46,34 +54,97 @@ class AtencionService:
         return str(getattr(user, "username", user.id))
 
     @classmethod
-    @transaction.atomic
-    def crear(cls, data: dict, user) -> AtencionDTO:
+    def crear(cls, data: dict, user=None) -> AtencionDTO:
+        is_auth = user and hasattr(user, "is_authenticated") and user.is_authenticated
+        raw_actor_id = data.get("creado_por_id")
+        actor_id = (
+            str(user.id) if is_auth else str(raw_actor_id or ACTOR_TECNICO_DEFAULT)
+        )
+        actor_role = getattr(user, "rol", Rol.CONSULTOR) if is_auth else Rol.CONSULTOR
+        jwt_subject = (
+            cls._jwt_subject(user)
+            if is_auth
+            else str(raw_actor_id or ACTOR_TECNICO_DEFAULT)
+        )
+
         input_dto = CrearAtencionInputDTO(
-            solicitud_id=data["solicitud_id"],
-            consultor_ids=data["consultor_ids"],
+            solicitud_id=str(data["solicitud_id"]),
+            consultor_ids=tuple(str(cid) for cid in data["consultor_ids"]),
             mensaje_preliminar=data["mensaje_preliminar"],
-            creado_por_id=user.id,
+            creado_por_id=actor_id
+            if is_auth
+            else (str(raw_actor_id) if raw_actor_id else None),
         )
-        solicitud = solicitudes_client.get(input_dto.solicitud_id)
-        if solicitud.estado == "DESCONOCIDO":
+
+        # 1. Validar solicitud fuera de transacción
+        try:
+            solicitud = solicitudes_client.obtener_solicitud(input_dto.solicitud_id)
+        except requests.RequestException:
             raise ServicioExternoNoDisponible()
-        if solicitud.estado != "Pendiente":
-            raise SolicitudNoAutorizada("La solicitud no está en estado Pendiente.")
+
+        if solicitud is None:
+            raise SolicitudNoAutorizada(
+                "La solicitud ingresada no existe en el sistema o no está autorizada para atención."
+            )
+        if solicitud.estado.upper() == "DESCONOCIDO":
+            raise ServicioExternoNoDisponible()
+        if solicitud.estado.upper() != "PENDIENTE":
+            raise SolicitudNoAutorizada(
+                "La solicitud ingresada no existe en el sistema o no está autorizada para atención."
+            )
+
+        # 2. Validar consultores fuera de transacción
+        consultores_info = []
         for cid in input_dto.consultor_ids:
-            info = parametrizacion_client.get(cid)
+            try:
+                info = parametrizacion_client.obtener_consultor(cid)
+            except requests.RequestException:
+                raise ServicioExternoNoDisponible()
+
+            if info is None:
+                raise ConsultorNoEncontrado(
+                    f"Consultor {cid} no encontrado en el sistema."
+                )
             if not info.disponible:
-                raise ConsultorNoDisponible()
-        dto = AtencionRepository.guardar(input_dto)
-        _invalidate_cache(user)
-        AuditService.registrar(
-            "CREAR",
-            user.id,
-            getattr(user, "rol", Rol.COORDINADOR),
-            dto.id,
-            {"solicitud_id": dto.solicitud_id},
-            cls._jwt_subject(user),
-        )
-        enviar_notificacion_programacion.delay(dto.id)
+                raise ConsultorNoDisponible(f"Consultor {cid} no está disponible.")
+            if (
+                solicitud.aptitud_requerida
+                and solicitud.aptitud_requerida not in info.aptitudes
+            ):
+                raise ConsultorNoDisponible(
+                    f"Consultor {cid} no tiene la aptitud requerida para este servicio."
+                )
+            consultores_info.append(info)
+
+        # 3. Persistencia atómica
+        with transaction.atomic():
+            dto = AtencionRepository.guardar(input_dto, consultores_info)
+
+            # Registrar auditoría dentro de la transacción
+            AuditService.registrar(
+                "CREAR",
+                actor_id,
+                actor_role,
+                dto.id,
+                {
+                    "solicitud_id": str(input_dto.solicitud_id),
+                    "consultor_ids": list(input_dto.consultor_ids),
+                    "mensaje_preliminar_length": len(input_dto.mensaje_preliminar),
+                },
+                jwt_subject,
+            )
+
+            # Invalidación de caché y encolar tarea asíncrona on_commit
+            transaction.on_commit(
+                lambda: AtencionCacheService.invalidate_after_create(
+                    created_by=input_dto.creado_por_id,
+                    consultor_ids=list(input_dto.consultor_ids),
+                )
+            )
+            transaction.on_commit(
+                lambda: enviar_notificacion_programacion.delay(dto.id)
+            )
+
         return dto
 
     @classmethod
@@ -85,7 +156,7 @@ class AtencionService:
             fecha_fin=data["fecha_fin"],
             programado_por_id=user.id,
         )
-        validar_anticipacion_24h(input_dto.fecha_programada)
+        validar_no_anterior_fecha_actual(input_dto.fecha_programada)
         validar_bloques_30min(input_dto.fecha_programada, input_dto.fecha_fin)
         atencion = AtencionRepository.obtener_por_id(atencion_id)
         validar_transicion_estado(atencion.estado, EstadoAtencion.AGENDADA)
@@ -96,7 +167,9 @@ class AtencionService:
             input_dto.fecha_fin,
             excluir_atencion_id=atencion_id,
         )
-        validar_cruce_horario(consultor_ids, input_dto.fecha_programada, input_dto.fecha_fin, cruces)
+        validar_cruce_horario(
+            consultor_ids, input_dto.fecha_programada, input_dto.fecha_fin, cruces
+        )
         dto = AtencionRepository.programar(input_dto)
         _invalidate_cache(user)
         AuditService.registrar(

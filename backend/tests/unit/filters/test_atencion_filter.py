@@ -5,7 +5,9 @@ from atenciones.filters.atencion_filter import AtencionFilterForm
 
 
 def test_parse_query_params_returns_cleaned_data():
-    data = AtencionFilterForm.parse_query_params({"estado": "AGENDADA", "solicitud_id": "42"})
+    data = AtencionFilterForm.parse_query_params(
+        {"estado": "AGENDADA", "solicitud_id": "42"}
+    )
     assert data["estado"] == "AGENDADA"
     assert data["solicitud_id"] == 42
 

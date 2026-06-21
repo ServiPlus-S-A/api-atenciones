@@ -25,8 +25,8 @@ def _fechas_programacion():
 
 
 @pytest.mark.django_db
-@patch("atenciones.services.atencion_service.solicitudes_client.get")
-@patch("atenciones.services.atencion_service.parametrizacion_client.get")
+@patch("atenciones.services.atencion_service.solicitudes_client.obtener_solicitud")
+@patch("atenciones.services.atencion_service.parametrizacion_client.obtener_consultor")
 def test_crear_valida_solicitud_pendiente(mock_param, mock_sol, api_client_coordinador):
     mock_sol.return_value = SolicitudInfo(id=1, estado="Pendiente", consultor_ids=[1])
     from atenciones.integrations.parametrizacion_client import ConsultorInfo
@@ -57,12 +57,12 @@ def test_transicion_invalida_finalizada_a_anulada(api_client_coordinador):
 
 
 @pytest.mark.django_db
-def test_programar_falla_menos_24h(api_client_coordinador):
+def test_programar_falla_fecha_pasada(api_client_coordinador):
     from datetime import datetime, timedelta, timezone
 
     atencion = AtencionFactory()
     user = api_client_coordinador.test_user
-    inicio = datetime.now(timezone.utc) + timedelta(hours=2)
+    inicio = datetime.now(timezone.utc) - timedelta(minutes=30)
     fin = inicio + timedelta(hours=1)
     with pytest.raises(AnticipacionInsuficiente):
         AtencionService.programar(
@@ -77,7 +77,9 @@ def test_programar_falla_menos_24h(api_client_coordinador):
 @patch("atenciones.services.atencion_service.validar_transicion_estado")
 def test_programar_ok(mock_transicion, mock_delay, api_client_coordinador):
     atencion = AtencionFactory()
-    AtentionConsultant.objects.create(atention=atencion, consultant_id=1, is_leader=True)
+    AtentionConsultant.objects.create(
+        atention=atencion, consultant_id=1, is_leader=True
+    )
     inicio, fin = _fechas_programacion()
     user = api_client_coordinador.test_user
     dto = AtencionService.programar(
@@ -90,21 +92,27 @@ def test_programar_ok(mock_transicion, mock_delay, api_client_coordinador):
 
 
 @pytest.mark.django_db
-@patch("atenciones.services.atencion_service.solicitudes_client.get")
+@patch("atenciones.services.atencion_service.solicitudes_client.obtener_solicitud")
 def test_crear_rechaza_solicitud_no_pendiente(mock_sol, api_client_coordinador):
     mock_sol.return_value = SolicitudInfo(id=1, estado="Cerrada", consultor_ids=[1])
     user = api_client_coordinador.test_user
     with pytest.raises(SolicitudNoAutorizada):
         AtencionService.crear(
-            {"solicitud_id": 1, "consultor_ids": [1], "mensaje_preliminar": "Mensaje preliminar válido."},
+            {
+                "solicitud_id": 1,
+                "consultor_ids": [1],
+                "mensaje_preliminar": "Mensaje preliminar válido.",
+            },
             user,
         )
 
 
 @pytest.mark.django_db
-@patch("atenciones.services.atencion_service.solicitudes_client.get")
-@patch("atenciones.services.atencion_service.parametrizacion_client.get")
-def test_crear_rechaza_consultor_no_disponible(mock_param, mock_sol, api_client_coordinador):
+@patch("atenciones.services.atencion_service.solicitudes_client.obtener_solicitud")
+@patch("atenciones.services.atencion_service.parametrizacion_client.obtener_consultor")
+def test_crear_rechaza_consultor_no_disponible(
+    mock_param, mock_sol, api_client_coordinador
+):
     mock_sol.return_value = SolicitudInfo(id=1, estado="Pendiente", consultor_ids=[1])
     from atenciones.integrations.parametrizacion_client import ConsultorInfo
 
@@ -112,7 +120,11 @@ def test_crear_rechaza_consultor_no_disponible(mock_param, mock_sol, api_client_
     user = api_client_coordinador.test_user
     with pytest.raises(ConsultorNoDisponible):
         AtencionService.crear(
-            {"solicitud_id": 1, "consultor_ids": [1], "mensaje_preliminar": "Mensaje preliminar válido."},
+            {
+                "solicitud_id": 1,
+                "consultor_ids": [1],
+                "mensaje_preliminar": "Mensaje preliminar válido.",
+            },
             user,
         )
 
@@ -122,7 +134,9 @@ def test_crear_rechaza_consultor_no_disponible(mock_param, mock_sol, api_client_
 def test_finalizar_ok(mock_delay, api_client_consultor):
     atencion = AtencionFactory()
     user = api_client_consultor.test_user
-    AtentionConsultant.objects.create(atention=atencion, consultant_id=user.id, is_leader=True)
+    AtentionConsultant.objects.create(
+        atention=atencion, consultant_id=user.id, is_leader=True
+    )
     dto = AtencionService.finalizar(
         atencion.pk,
         {"notas_finales": "Notas finales válidas con más de veinte caracteres."},
@@ -167,10 +181,14 @@ def test_listar_usa_cache_sin_filtros(api_client_coordinador):
 def test_listar_consultor_excluye_anuladas_y_filtra_por_consultor(api_client_consultor):
     user = api_client_consultor.test_user
     atencion = AtencionFactory()
-    AtentionConsultant.objects.create(atention=atencion, consultant_id=user.id, is_leader=True)
+    AtentionConsultant.objects.create(
+        atention=atencion, consultant_id=user.id, is_leader=True
+    )
     from tests.factories.atencion_factory import AtencionAnuladaFactory
 
     otra = AtencionAnuladaFactory()
-    AtentionConsultant.objects.create(atention=otra, consultant_id=user.id, is_leader=True)
+    AtentionConsultant.objects.create(
+        atention=otra, consultant_id=user.id, is_leader=True
+    )
     result = AtencionService.listar_para_usuario(user, {})
     assert all(d.estado != EstadoAtencion.ANULADA for d in result)

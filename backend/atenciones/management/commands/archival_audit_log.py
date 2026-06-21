@@ -26,7 +26,16 @@ class Command(BaseCommand):
         buffer = io.StringIO()
         writer = csv.writer(buffer)
         writer.writerow(
-            ["id", "operacion", "actor_id", "actor_rol", "atencion_id", "payload_hash_sha256", "jwt_subject", "timestamp"],
+            [
+                "id",
+                "operacion",
+                "actor_id",
+                "actor_rol",
+                "atencion_id",
+                "payload_hash_sha256",
+                "jwt_subject",
+                "timestamp",
+            ],
         )
         for log in qs.iterator():
             writer.writerow(
@@ -46,11 +55,19 @@ class Command(BaseCommand):
         filename = f"audit_log_{cutoff.strftime('%Y%m')}.csv.gz"
         self._upload_to_supabase(filename, compressed)
         deleted, _ = qs.delete()
-        self.stdout.write(self.style.SUCCESS(f"Archivados y eliminados {deleted} registros → {filename}"))
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Archivados y eliminados {deleted} registros → {filename}"
+            )
+        )
 
     def _upload_to_supabase(self, filename: str, data: bytes) -> None:
         if not settings.SUPABASE_URL:
-            self.stdout.write(self.style.WARNING(f"Supabase no configurado; archivo local simulado: {filename}"))
+            self.stdout.write(
+                self.style.WARNING(
+                    f"Supabase no configurado; archivo local simulado: {filename}"
+                )
+            )
             return
         import requests
 

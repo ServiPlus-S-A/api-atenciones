@@ -1,7 +1,10 @@
 from atenciones.audit.audit_service import AuditService
 from atenciones.constants import Rol
 from atenciones.dtos.output.nota_seguimiento_dto import NotaSeguimientoDTO
-from atenciones.exceptions.custom_exceptions import AtencionNoEncontrada, SolicitudNoAutorizada
+from atenciones.exceptions.custom_exceptions import (
+    AtencionNoEncontrada,
+    SolicitudNoAutorizada,
+)
 from atenciones.repositories.atencion_repository import AtencionRepository
 from atenciones.repositories.nota_seguimiento_repository import (
     AddNoteInputDTO,

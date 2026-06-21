@@ -3,7 +3,11 @@ from unittest.mock import MagicMock, patch
 import pytest
 import requests
 
-from atenciones.integrations.base_client import BaseIntegrationClient, CircuitState, circuit_breaker
+from atenciones.integrations.base_client import (
+    BaseIntegrationClient,
+    CircuitState,
+    circuit_breaker,
+)
 
 
 @pytest.mark.unit

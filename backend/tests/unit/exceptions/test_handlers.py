@@ -13,7 +13,9 @@ from atenciones.exceptions.handlers import _build_response, custom_exception_han
 
 @pytest.mark.unit
 def test_build_response_incluye_field_errors():
-    response = _build_response("code", "msg", 400, field_errors={"estado": ["inválido"]})
+    response = _build_response(
+        "code", "msg", 400, field_errors={"estado": ["inválido"]}
+    )
     assert response.status_code == 400
     assert response.data["field_errors"]["estado"] == ["inválido"]
 
@@ -32,7 +34,9 @@ def test_handler_base_atencion_exception():
 def test_handler_parametros_filtro_invalidos():
     request = APIRequestFactory().get("/")
     request.user = type("U", (), {"id": 1})()
-    exc = ParametrosFiltroInvalidos(field_errors={"estado": ["Seleccione una opción válida."]})
+    exc = ParametrosFiltroInvalidos(
+        field_errors={"estado": ["Seleccione una opción válida."]}
+    )
     response = custom_exception_handler(exc, {"request": request, "view": APIView()})
     assert response.status_code == 400
     assert "field_errors" in response.data
