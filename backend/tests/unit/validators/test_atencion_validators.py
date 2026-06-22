@@ -5,14 +5,17 @@ import pytest
 from atenciones.constants import EstadoAtencion
 from atenciones.exceptions.custom_exceptions import (
     AnticipacionInsuficiente,
+    CruceHorarioException,
+    EstadoAtencionNoPermitidoException,
     TransicionInvalidaException,
 )
-from atenciones.exceptions.custom_exceptions import CruceHorarioException
 from atenciones.validators.atencion_validators import (
     validar_anticipacion_24h,
     validar_bloques_30min,
     validar_cruce_horario,
+    validar_estado_finalizacion,
     validar_longitud_notas,
+    validar_transicion_a_finalizada,
     validar_transicion_estado,
 )
 
@@ -43,8 +46,26 @@ def test_transicion_finalizada_a_anulada_invalida():
 
 @pytest.mark.unit
 def test_longitud_notas_minima():
-    with pytest.raises(TransicionInvalidaException):
+    with pytest.raises(EstadoAtencionNoPermitidoException):
         validar_longitud_notas("corta")
+
+
+@pytest.mark.unit
+def test_longitud_notas_maxima():
+    with pytest.raises(EstadoAtencionNoPermitidoException):
+        validar_longitud_notas("x" * 2001)
+
+
+@pytest.mark.unit
+def test_estado_finalizacion_invalido():
+    with pytest.raises(EstadoAtencionNoPermitidoException):
+        validar_estado_finalizacion(EstadoAtencion.ANULADA)
+
+
+@pytest.mark.unit
+def test_transicion_a_finalizada_desde_finalizada_bloqueada():
+    with pytest.raises(EstadoAtencionNoPermitidoException):
+        validar_transicion_a_finalizada(EstadoAtencion.FINALIZADA)
 
 
 @pytest.mark.unit
