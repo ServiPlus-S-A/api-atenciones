@@ -64,10 +64,9 @@ def _mock_user_if_unauthenticated(
     default_rol="CONSULTOR",
     query_atencion_id=None,
     query_consultor_id=None,
+    allow_mock_auth=False,
 ):
-    from django.conf import settings
-
-    if not getattr(settings, "ALLOW_MOCK_AUTH", False):
+    if not allow_mock_auth:
         return
 
     if drf_request.user and drf_request.user.is_authenticated:
@@ -130,9 +129,14 @@ class AtencionListCreateView(APIView):
         return super().get_permissions()
 
     def initialize_request(self, request, *args, **kwargs):
+        from django.conf import settings
+
         drf_request = super().initialize_request(request, *args, **kwargs)
         _mock_user_if_unauthenticated(
-            drf_request, default_id="1", default_rol="CONSULTOR"
+            drf_request,
+            default_id="1",
+            default_rol="CONSULTOR",
+            allow_mock_auth=settings.ALLOW_MOCK_AUTH,
         )
         return drf_request
 
@@ -163,9 +167,14 @@ class AtencionDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
     def initialize_request(self, request, *args, **kwargs):
+        from django.conf import settings
+
         drf_request = super().initialize_request(request, *args, **kwargs)
         _mock_user_if_unauthenticated(
-            drf_request, default_id="1", default_rol="CONSULTOR"
+            drf_request,
+            default_id="1",
+            default_rol="CONSULTOR",
+            allow_mock_auth=settings.ALLOW_MOCK_AUTH,
         )
         return drf_request
 
@@ -181,9 +190,15 @@ class AtencionProgramarView(APIView):
     permission_classes = [IsAuthenticated, IsOwnerConsultorOrCoordinador]
 
     def initialize_request(self, request, *args, **kwargs):
+        from django.conf import settings
+
         drf_request = super().initialize_request(request, *args, **kwargs)
         _mock_user_if_unauthenticated(
-            drf_request, pk=kwargs.get("pk"), default_id="1", default_rol="CONSULTOR"
+            drf_request,
+            pk=kwargs.get("pk"),
+            default_id="1",
+            default_rol="CONSULTOR",
+            allow_mock_auth=settings.ALLOW_MOCK_AUTH,
         )
         return drf_request
 
@@ -227,9 +242,15 @@ class AtencionFinalizarView(APIView):
     permission_classes = [IsAuthenticated, IsConsultor, IsOwnerConsultorOrCoordinador]
 
     def initialize_request(self, request, *args, **kwargs):
+        from django.conf import settings
+
         drf_request = super().initialize_request(request, *args, **kwargs)
         _mock_user_if_unauthenticated(
-            drf_request, pk=kwargs.get("pk"), default_id="1", default_rol="CONSULTOR"
+            drf_request,
+            pk=kwargs.get("pk"),
+            default_id="1",
+            default_rol="CONSULTOR",
+            allow_mock_auth=settings.ALLOW_MOCK_AUTH,
         )
         return drf_request
 
@@ -254,9 +275,14 @@ class AtencionAnularView(APIView):
     permission_classes = [IsAuthenticated, IsCoordinador]
 
     def initialize_request(self, request, *args, **kwargs):
+        from django.conf import settings
+
         drf_request = super().initialize_request(request, *args, **kwargs)
         _mock_user_if_unauthenticated(
-            drf_request, default_id="1", default_rol="COORDINADOR"
+            drf_request,
+            default_id="1",
+            default_rol="COORDINADOR",
+            allow_mock_auth=settings.ALLOW_MOCK_AUTH,
         )
         return drf_request
 
@@ -274,6 +300,8 @@ class AtencionVerificarCruceView(APIView):
     permission_classes = [IsAuthenticated]
 
     def initialize_request(self, request, *args, **kwargs):
+        from django.conf import settings
+
         drf_request = super().initialize_request(request, *args, **kwargs)
         _mock_user_if_unauthenticated(
             drf_request,
@@ -281,6 +309,7 @@ class AtencionVerificarCruceView(APIView):
             query_consultor_id=drf_request.query_params.get("consultor_id"),
             default_id="1",
             default_rol="CONSULTOR",
+            allow_mock_auth=settings.ALLOW_MOCK_AUTH,
         )
         return drf_request
 
