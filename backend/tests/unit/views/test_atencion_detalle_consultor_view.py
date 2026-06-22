@@ -8,8 +8,9 @@ Verifica que la vista:
   - Retorna 401 cuando faltan cabeceras de autenticación
   - No confunde rol CLIENTE con CONSULTOR
 """
+
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 from rest_framework.test import APIRequestFactory
 
@@ -61,6 +62,7 @@ def _get(pk: int, user_id: str = CONSULTOR_ID, user_role: str = "CONSULTOR"):
 
 # ─── CA-1 y CA-2: consultor asignado recibe 200 con contacto ────────────────
 
+
 @pytest.mark.unit
 @patch(
     "atenciones.views.atencion_detalle_view.AtencionDetalleConsultorService.obtener_detalle_consultor"
@@ -81,6 +83,7 @@ def test_consultor_asignado_retorna_200_con_contacto(mock_service):
 
 # ─── CA-3: consultor no asignado recibe 403 con mensaje exacto ──────────────
 
+
 @pytest.mark.unit
 @patch(
     "atenciones.views.atencion_detalle_view.AtencionDetalleConsultorService.obtener_detalle_consultor"
@@ -92,16 +95,22 @@ def test_consultor_no_asignado_retorna_403_con_mensaje(mock_service):
     response = _get(pk=1)
 
     assert response.status_code == 403
-    assert response.data["detail"] == "No tiene permisos para consultar el detalle de esta atención."
+    assert (
+        response.data["detail"]
+        == "No tiene permisos para consultar el detalle de esta atención."
+    )
 
 
 # ─── CA-4: módulo Clientes no disponible retorna 200 con degradación ────────
+
 
 @pytest.mark.unit
 @patch(
     "atenciones.views.atencion_detalle_view.AtencionDetalleConsultorService.obtener_detalle_consultor"
 )
-def test_servicio_clientes_no_disponible_retorna_200_con_mensaje_degradacion(mock_service):
+def test_servicio_clientes_no_disponible_retorna_200_con_mensaje_degradacion(
+    mock_service,
+):
     """CA-4: 200 con contacto_disponible=False y el mensaje de degradación."""
     mock_service.return_value = _make_dto(
         contacto_disponible=False,
@@ -124,6 +133,7 @@ def test_servicio_clientes_no_disponible_retorna_200_con_mensaje_degradacion(moc
 
 # ─── Sin cabeceras → 401 ─────────────────────────────────────────────────────
 
+
 @pytest.mark.unit
 def test_sin_cabeceras_retorna_401():
     """Sin X-User-Id ni X-User-Role la vista debe retornar 401."""
@@ -136,6 +146,7 @@ def test_sin_cabeceras_retorna_401():
 
 # ─── Rol CLIENTE no accede a la rama CONSULTOR ───────────────────────────────
 
+
 @pytest.mark.unit
 def test_rol_cliente_retorna_403():
     """Un usuario con rol CLIENTE no debe acceder a la rama CONSULTOR ni a COORDINADOR."""
@@ -145,6 +156,7 @@ def test_rol_cliente_retorna_403():
 
 
 # ─── Atención no encontrada ──────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 @patch(
@@ -160,6 +172,7 @@ def test_atencion_inexistente_retorna_404(mock_service):
 
 
 # ─── Error de BD → 503 ───────────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 @patch(

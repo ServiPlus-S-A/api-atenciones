@@ -10,8 +10,7 @@ NO_REGISTRADO = "No registrado"
 
 # Mensaje cuando el servicio de Clientes no responde a tiempo (CA-4)
 MSG_CONTACTO_NO_DISPONIBLE = (
-    "Información de contacto no disponible temporalmente. "
-    "Intente de nuevo más tarde"
+    "Información de contacto no disponible temporalmente. Intente de nuevo más tarde"
 )
 
 
@@ -39,8 +38,8 @@ class AtencionDetalleConsultorDTO:
     acciones_disponibles: dict[str, bool]
 
     # Campos de contacto del cliente (CA-2)
-    contacto_nombre: str          # "No registrado" si ausente
-    contacto_telefono: str        # "No registrado" si ausente
-    contacto_correo: str          # "No registrado" si ausente
-    contacto_disponible: bool     # False si el servicio de Clientes falló
+    contacto_nombre: str  # "No registrado" si ausente
+    contacto_telefono: str  # "No registrado" si ausente
+    contacto_correo: str  # "No registrado" si ausente
+    contacto_disponible: bool  # False si el servicio de Clientes falló
     contacto_error_msg: str | None  # Mensaje de CA-4 cuando contacto_disponible=False

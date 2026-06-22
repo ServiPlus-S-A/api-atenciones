@@ -67,10 +67,10 @@ def isolated_test_cache(monkeypatch):
 def patch_django_test_client_python314_bug(monkeypatch):
     """
     Evita el renderizado de plantillas de error en Django durante los tests.
-    En Python 3.13/3.14 hay un bug con la copia del contexto de la plantilla 
+    En Python 3.13/3.14 hay un bug con la copia del contexto de la plantilla
     (Context.__copy__) cuando el logger de Django intenta renderizar el 500/503.
     """
     monkeypatch.setattr(
-        "django.views.debug.ExceptionReporter.get_traceback_text", 
-        lambda self: "Mocked traceback to prevent Python 3.14 copy bug"
+        "django.views.debug.ExceptionReporter.get_traceback_text",
+        lambda self: "Mocked traceback to prevent Python 3.14 copy bug",
     )

@@ -46,9 +46,7 @@ class AtencionDetalleView(APIView):
         # ── Rama COORDINADOR (HU-19) ─────────────────────────────────────────
         if user_role == "COORDINADOR":
             try:
-                dto = AtencionDetalleService.obtener_detalle_coordinador(
-                    atention_id=pk
-                )
+                dto = AtencionDetalleService.obtener_detalle_coordinador(atention_id=pk)
             except AtencionDoesNotExist:
                 return Response(
                     {"detail": "Atención no encontrada."},
@@ -76,7 +74,9 @@ class AtencionDetalleView(APIView):
                 )
             except ConsultorNoAsignado:
                 return Response(
-                    {"detail": "No tiene permisos para consultar el detalle de esta atención."},
+                    {
+                        "detail": "No tiene permisos para consultar el detalle de esta atención."
+                    },
                     status=status.HTTP_403_FORBIDDEN,
                 )
             except AtencionDoesNotExist:

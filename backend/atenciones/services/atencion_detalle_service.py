@@ -3,7 +3,9 @@ import logging
 from django.core.cache import cache
 from django.db import Error as DBError
 
-from atenciones.dtos.output.atencion_detalle_coordinador_dto import AtencionDetalleCoordinadorDTO
+from atenciones.dtos.output.atencion_detalle_coordinador_dto import (
+    AtencionDetalleCoordinadorDTO,
+)
 from atenciones.exceptions import AtencionDoesNotExist, AtencionServiceUnavailableError
 from atenciones.exceptions.custom_exceptions import AtencionNoEncontrada
 from atenciones.integrations.clientes_client import clientes_client

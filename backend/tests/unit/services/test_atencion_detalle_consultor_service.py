@@ -9,13 +9,14 @@ Cubre los 6 criterios de aceptación:
   CA-5: "No registrado" para campos ausentes
   CA-6: el servicio no expone métodos de edición/exportación
 """
+
 import pytest
 from unittest.mock import patch
 
 from django.db import Error as DBError
 
 from atenciones.constants import EstadoAtencion
-from atenciones.exceptions import AtencionDoesNotExist, AtencionServiceUnavailableError
+from atenciones.exceptions import AtencionServiceUnavailableError
 from atenciones.exceptions.custom_exceptions import ConsultorNoAsignado
 from atenciones.dtos.output.atencion_detalle_consultor_dto import (
     MSG_CONTACTO_NO_DISPONIBLE,
@@ -57,10 +58,15 @@ def atencion_con_consultor(db):
 
 # ─── CA-1 y CA-2: consultor asignado obtiene contacto completo ──────────────
 
+
 @pytest.mark.django_db
 @pytest.mark.unit
-@patch("atenciones.services.atencion_detalle_consultor_service.solicitudes_client.get_solicitud")
-@patch("atenciones.services.atencion_detalle_consultor_service.clientes_client.get_contacto_cliente")
+@patch(
+    "atenciones.services.atencion_detalle_consultor_service.solicitudes_client.get_solicitud"
+)
+@patch(
+    "atenciones.services.atencion_detalle_consultor_service.clientes_client.get_contacto_cliente"
+)
 def test_consultor_asignado_obtiene_contacto_completo(
     mock_contacto, mock_solicitud, atencion_con_consultor
 ):
@@ -81,6 +87,7 @@ def test_consultor_asignado_obtiene_contacto_completo(
 
 
 # ─── CA-3: consultor NO asignado debe ser bloqueado ─────────────────────────
+
 
 @pytest.mark.django_db
 @pytest.mark.unit
@@ -117,10 +124,15 @@ def test_consultor_de_otra_atencion_no_puede_ver_esta(db):
 
 # ─── CA-4: degradación elegante si el módulo de Clientes falla ──────────────
 
+
 @pytest.mark.django_db
 @pytest.mark.unit
-@patch("atenciones.services.atencion_detalle_consultor_service.solicitudes_client.get_solicitud")
-@patch("atenciones.services.atencion_detalle_consultor_service.clientes_client.get_contacto_cliente")
+@patch(
+    "atenciones.services.atencion_detalle_consultor_service.solicitudes_client.get_solicitud"
+)
+@patch(
+    "atenciones.services.atencion_detalle_consultor_service.clientes_client.get_contacto_cliente"
+)
 def test_clientes_service_no_disponible_degrada_sin_fallar(
     mock_contacto, mock_solicitud, atencion_con_consultor
 ):
@@ -141,7 +153,9 @@ def test_clientes_service_no_disponible_degrada_sin_fallar(
 
 @pytest.mark.django_db
 @pytest.mark.unit
-@patch("atenciones.services.atencion_detalle_consultor_service.solicitudes_client.get_solicitud")
+@patch(
+    "atenciones.services.atencion_detalle_consultor_service.solicitudes_client.get_solicitud"
+)
 def test_solicitudes_service_no_disponible_degrada_sin_fallar(
     mock_solicitud, atencion_con_consultor
 ):
@@ -159,8 +173,12 @@ def test_solicitudes_service_no_disponible_degrada_sin_fallar(
 
 @pytest.mark.django_db
 @pytest.mark.unit
-@patch("atenciones.services.atencion_detalle_consultor_service.solicitudes_client.get_solicitud")
-@patch("atenciones.services.atencion_detalle_consultor_service.clientes_client.get_contacto_cliente")
+@patch(
+    "atenciones.services.atencion_detalle_consultor_service.solicitudes_client.get_solicitud"
+)
+@patch(
+    "atenciones.services.atencion_detalle_consultor_service.clientes_client.get_contacto_cliente"
+)
 def test_excepcion_en_clientes_degrada_sin_propagar(
     mock_contacto, mock_solicitud, atencion_con_consultor
 ):
@@ -179,10 +197,15 @@ def test_excepcion_en_clientes_degrada_sin_propagar(
 
 # ─── CA-5: campos None → "No registrado" ────────────────────────────────────
 
+
 @pytest.mark.django_db
 @pytest.mark.unit
-@patch("atenciones.services.atencion_detalle_consultor_service.solicitudes_client.get_solicitud")
-@patch("atenciones.services.atencion_detalle_consultor_service.clientes_client.get_contacto_cliente")
+@patch(
+    "atenciones.services.atencion_detalle_consultor_service.solicitudes_client.get_solicitud"
+)
+@patch(
+    "atenciones.services.atencion_detalle_consultor_service.clientes_client.get_contacto_cliente"
+)
 def test_telefono_none_retorna_no_registrado(
     mock_contacto, mock_solicitud, atencion_con_consultor
 ):
@@ -206,8 +229,12 @@ def test_telefono_none_retorna_no_registrado(
 
 @pytest.mark.django_db
 @pytest.mark.unit
-@patch("atenciones.services.atencion_detalle_consultor_service.solicitudes_client.get_solicitud")
-@patch("atenciones.services.atencion_detalle_consultor_service.clientes_client.get_contacto_cliente")
+@patch(
+    "atenciones.services.atencion_detalle_consultor_service.solicitudes_client.get_solicitud"
+)
+@patch(
+    "atenciones.services.atencion_detalle_consultor_service.clientes_client.get_contacto_cliente"
+)
 def test_correo_none_retorna_no_registrado(
     mock_contacto, mock_solicitud, atencion_con_consultor
 ):
@@ -229,8 +256,12 @@ def test_correo_none_retorna_no_registrado(
 
 @pytest.mark.django_db
 @pytest.mark.unit
-@patch("atenciones.services.atencion_detalle_consultor_service.solicitudes_client.get_solicitud")
-@patch("atenciones.services.atencion_detalle_consultor_service.clientes_client.get_contacto_cliente")
+@patch(
+    "atenciones.services.atencion_detalle_consultor_service.solicitudes_client.get_solicitud"
+)
+@patch(
+    "atenciones.services.atencion_detalle_consultor_service.clientes_client.get_contacto_cliente"
+)
 def test_nombre_none_retorna_no_registrado(
     mock_contacto, mock_solicitud, atencion_con_consultor
 ):
@@ -252,8 +283,12 @@ def test_nombre_none_retorna_no_registrado(
 
 @pytest.mark.django_db
 @pytest.mark.unit
-@patch("atenciones.services.atencion_detalle_consultor_service.solicitudes_client.get_solicitud")
-@patch("atenciones.services.atencion_detalle_consultor_service.clientes_client.get_contacto_cliente")
+@patch(
+    "atenciones.services.atencion_detalle_consultor_service.solicitudes_client.get_solicitud"
+)
+@patch(
+    "atenciones.services.atencion_detalle_consultor_service.clientes_client.get_contacto_cliente"
+)
 def test_todos_los_campos_none_retornan_no_registrado(
     mock_contacto, mock_solicitud, atencion_con_consultor
 ):
@@ -279,10 +314,15 @@ def test_todos_los_campos_none_retornan_no_registrado(
 
 # ─── Comportamiento de notas de seguimiento ─────────────────────────────────
 
+
 @pytest.mark.django_db
 @pytest.mark.unit
-@patch("atenciones.services.atencion_detalle_consultor_service.solicitudes_client.get_solicitud")
-@patch("atenciones.services.atencion_detalle_consultor_service.clientes_client.get_contacto_cliente")
+@patch(
+    "atenciones.services.atencion_detalle_consultor_service.solicitudes_client.get_solicitud"
+)
+@patch(
+    "atenciones.services.atencion_detalle_consultor_service.clientes_client.get_contacto_cliente"
+)
 def test_atencion_sin_notas_incluye_mensaje_bitacora(
     mock_contacto, mock_solicitud, atencion_con_consultor
 ):
@@ -297,13 +337,20 @@ def test_atencion_sin_notas_incluye_mensaje_bitacora(
 
     assert dto.notas == []
     assert dto.diagnostico_inicial is None
-    assert dto.mensaje_bitacora == "Esta atención no tiene notas de seguimiento registradas."
+    assert (
+        dto.mensaje_bitacora
+        == "Esta atención no tiene notas de seguimiento registradas."
+    )
 
 
 @pytest.mark.django_db
 @pytest.mark.unit
-@patch("atenciones.services.atencion_detalle_consultor_service.solicitudes_client.get_solicitud")
-@patch("atenciones.services.atencion_detalle_consultor_service.clientes_client.get_contacto_cliente")
+@patch(
+    "atenciones.services.atencion_detalle_consultor_service.solicitudes_client.get_solicitud"
+)
+@patch(
+    "atenciones.services.atencion_detalle_consultor_service.clientes_client.get_contacto_cliente"
+)
 def test_atencion_con_notas_incluye_diagnostico_inicial(
     mock_contacto, mock_solicitud, atencion_con_consultor
 ):
@@ -329,10 +376,15 @@ def test_atencion_con_notas_incluye_diagnostico_inicial(
 
 # ─── Error de BD ─────────────────────────────────────────────────────────────
 
+
 @pytest.mark.django_db
 @pytest.mark.unit
-@patch("atenciones.services.atencion_detalle_consultor_service.AtencionRepository.obtener_por_id")
-def test_error_de_bd_lanza_atencion_service_unavailable(mock_repo, atencion_con_consultor):
+@patch(
+    "atenciones.services.atencion_detalle_consultor_service.AtencionRepository.obtener_por_id"
+)
+def test_error_de_bd_lanza_atencion_service_unavailable(
+    mock_repo, atencion_con_consultor
+):
     """Si hay un error de BD tras validar la asignación, se lanza AtencionServiceUnavailableError."""
     mock_repo.side_effect = DBError("Conexión perdida")
 

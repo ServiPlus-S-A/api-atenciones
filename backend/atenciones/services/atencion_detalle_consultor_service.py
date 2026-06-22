@@ -91,7 +91,9 @@ class AtencionDetalleConsultorService:
 
         try:
             client_id: str | None = None
-            solicitud_dict = solicitudes_client.get_solicitud(str(atencion.solicitud_id))
+            solicitud_dict = solicitudes_client.get_solicitud(
+                str(atencion.solicitud_id)
+            )
             if solicitud_dict:
                 client_id = solicitud_dict.get("client_id")
                 solicitud_nombre = solicitud_dict.get("nombre")

@@ -24,6 +24,7 @@ class AtencionDetalleCoordinadorOutputSerializer(serializers.Serializer):
 
 class AtencionDetalleConsultorOutputSerializer(serializers.Serializer):
     """Serializer para el detalle de atención visto por un consultor (HU-05)"""
+
     id = serializers.IntegerField(read_only=True)
     request_id = serializers.CharField(read_only=True)
     solicitud_nombre = serializers.CharField(read_only=True, allow_null=True)
@@ -33,7 +34,9 @@ class AtencionDetalleConsultorOutputSerializer(serializers.Serializer):
     diagnostico_inicial = serializers.CharField(read_only=True, allow_null=True)
     notas = MonitoringNoteOutputSerializer(many=True, read_only=True)
     mensaje_bitacora = serializers.CharField(read_only=True, allow_null=True)
-    acciones_disponibles = serializers.DictField(child=serializers.BooleanField(), read_only=True)
+    acciones_disponibles = serializers.DictField(
+        child=serializers.BooleanField(), read_only=True
+    )
 
     # Campos de contacto (HU-01)
     contacto_nombre = serializers.CharField(read_only=True)
