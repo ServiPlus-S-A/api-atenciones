@@ -48,7 +48,7 @@ def _make_dto(**overrides) -> AtencionDetalleConsultorDTO:
         "contacto_error_msg": None,
     }
     defaults.update(overrides)
-    return AtencionDetalleConsultorDTO(**defaults)
+    return AtencionDetalleConsultorDTO(**defaults)  # type: ignore
 
 
 def _get(pk: int, user_id: str = CONSULTOR_ID, user_role: str = "CONSULTOR"):
