@@ -240,13 +240,42 @@ class AtencionService:
         elif rol == Rol.CLIENTE:
             estados_excluidos = [EstadoAtencion.ANULADA.value]
 
+        # Resolver filtros que requieren llamadas a servicios externos
+        filtros_local = dict(filtros) if filtros else {}
+
+        # Buscar solicitudes por nombre de cliente -> obtener request_ids
+        cliente_nombre = filtros_local.pop("cliente_nombre", None)
+        if cliente_nombre:
+            try:
+                request_ids = solicitudes_client.buscar_solicitudes_por_cliente_nombre(
+                    cliente_nombre
+                )
+            except requests.RequestException:
+                raise ServicioExternoNoDisponible()
+            if not request_ids:
+                return []
+            filtros_local["request_ids"] = request_ids
+
+        # Buscar consultores por nombre -> obtener consultor ids
+        consultor_nombre = filtros_local.pop("consultor_nombre", None)
+        if consultor_nombre:
+            try:
+                consultant_ids = parametrizacion_client.buscar_consultores_por_nombre(
+                    consultor_nombre
+                )
+            except requests.RequestException:
+                raise ServicioExternoNoDisponible()
+            if not consultant_ids:
+                return []
+            filtros_local["consultant_ids"] = consultant_ids
+
         key = _cache_key(user.id, rol)
         cached = cache.get(key)
-        if cached is not None and not filtros:
+        if cached is not None and not filtros_local:
             return cached
 
-        result = AtencionRepository.listar(filtros, estados_excluidos)
-        if not filtros:
+        result = AtencionRepository.listar(filtros_local, estados_excluidos)
+        if not filtros_local:
             cache.set(key, result, TTL_LISTED_CACHE)
         return result
 

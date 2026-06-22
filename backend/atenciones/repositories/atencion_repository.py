@@ -40,14 +40,22 @@ class AtencionRepository:
             qs = qs.exclude(status__in=estados_excluidos)
         if estado := filtros.get("estado"):
             qs = qs.filter(status=estado)
+        # Filtrado por request_id único o por lista de request_ids
         if request_id := filtros.get("request_id"):
             qs = qs.filter(request_id=str(request_id))
+        if request_ids := filtros.get("request_ids"):
+            qs = qs.filter(request_id__in=[str(r) for r in request_ids])
         if fecha_inicio := filtros.get("fecha_inicio"):
             qs = qs.filter(scheduled_date__date__gte=fecha_inicio)
         if fecha_fin := filtros.get("fecha_fin"):
             qs = qs.filter(scheduled_date__date__lte=fecha_fin)
+        # Fecha de registro (created_at)
+        if fecha_registro := filtros.get("fecha_registro"):
+            qs = qs.filter(created_at__date=fecha_registro)
         if consultant_id := filtros.get("consultor_id"):
             qs = qs.filter(consultants_rel__consultant_id=str(consultant_id))
+        if consultant_ids := filtros.get("consultant_ids"):
+            qs = qs.filter(consultants_rel__consultant_id__in=[str(c) for c in consultant_ids])
         qs = qs.order_by("-created_at")
         return [AtencionDTO.from_orm(a) for a in qs.distinct()]
 

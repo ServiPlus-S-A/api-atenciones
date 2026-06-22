@@ -102,6 +102,43 @@ class SolicitudesClient(BaseIntegrationClient):
             )
             raise
 
+    def buscar_solicitudes_por_cliente_nombre(self, cliente_nombre: str) -> list[str]:
+        """Busca solicitudes asociadas a un nombre de cliente.
+
+        En modo `mock` recorre `SOLICITUDES_MOCK_RESPONSES` y compara
+        contra la clave `cliente_nombre` o `cliente_id` si está disponible.
+        En modo real intenta invocar un endpoint de búsqueda (si existe).
+        Retorna lista de `id` (strings)."""
+        mock_responses = getattr(settings, "SOLICITUDES_MOCK_RESPONSES", None)
+        if mock_responses is not None:
+            result = []
+            for sid, data in mock_responses.items():
+                # data puede ser un dict o un SolicitudInfoDTO-like
+                nombre = None
+                if isinstance(data, dict):
+                    nombre = data.get("cliente_nombre") or data.get("cliente_id")
+                else:
+                    nombre = getattr(data, "cliente_id", None)
+                if nombre and cliente_nombre.lower() in str(nombre).lower():
+                    result.append(str(sid))
+            logger.debug(
+                "SolicitudesClient.stub: buscar cliente_nombre=%s -> %s",
+                cliente_nombre,
+                result,
+            )
+            return result
+
+        try:
+            data = self._get("/solicitudes/", params={"cliente_nombre": cliente_nombre})
+            # esperamos una lista de objetos con 'id'
+            return [str(item.get("id")) for item in data]
+        except requests.RequestException:
+            logger.warning(
+                "SolicitudesClient: error al buscar solicitudes por cliente %s",
+                cliente_nombre,
+            )
+            raise
+
     # Backwards compatibility: mantiene el método get() original
     def get(self, solicitud_id: int | str) -> SolicitudInfoDTO:
         """Deprecated: usar obtener_solicitud(). Mantenido por compatibilidad."""

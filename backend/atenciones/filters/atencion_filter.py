@@ -16,7 +16,15 @@ class AtencionFilterForm(forms.Form):
 
     fecha_fin = forms.DateField(required=False)
 
-    solicitud_id = forms.IntegerField(required=False)
+    # Filtrado por fecha de registro (created_at)
+    fecha_registro = forms.DateField(required=False)
+
+    # ID de la solicitud externa (string/uuid)
+    request_id = forms.CharField(required=False)
+
+    # Filtrado por nombres (cliente o consultor)
+    cliente_nombre = forms.CharField(required=False)
+    consultor_nombre = forms.CharField(required=False)
 
     @classmethod
     def parse_query_params(cls, query_params) -> dict:

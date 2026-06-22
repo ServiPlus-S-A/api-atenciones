@@ -83,6 +83,41 @@ class ParametrizacionClient(BaseIntegrationClient):
             )
             raise
 
+    def buscar_consultores_por_nombre(self, nombre: str) -> list[str]:
+        """Busca consultores cuyo nombre contiene `nombre`.
+
+        En modo `mock` recorre `PARAMETRIZACION_MOCK_RESPONSES` y compara
+        con la clave `nombre`. En modo real intenta consultar un endpoint
+        de búsqueda y retorna lista de ids como strings.
+        """
+        mock_responses = getattr(settings, "PARAMETRIZACION_MOCK_RESPONSES", None)
+        if mock_responses is not None:
+            result = []
+            for cid, data in mock_responses.items():
+                nombre_mock = None
+                if isinstance(data, dict):
+                    nombre_mock = data.get("nombre")
+                else:
+                    nombre_mock = getattr(data, "nombre", None)
+                if nombre_mock and nombre.lower() in nombre_mock.lower():
+                    result.append(str(cid))
+            logger.debug(
+                "ParametrizacionClient.stub: buscar nombre=%s -> %s",
+                nombre,
+                result,
+            )
+            return result
+
+        try:
+            data = self._get("/consultores/", params={"nombre": nombre})
+            return [str(item.get("id")) for item in data]
+        except requests.RequestException:
+            logger.warning(
+                "ParametrizacionClient: error al buscar consultores por nombre %s",
+                nombre,
+            )
+            raise
+
     def get(self, consultor_id: int | str) -> ConsultorInfoDTO:
         """Deprecated: usar obtener_consultor(). Mantenido por compatibilidad."""
         try:
