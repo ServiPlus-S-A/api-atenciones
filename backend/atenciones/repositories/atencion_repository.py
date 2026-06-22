@@ -55,7 +55,9 @@ class AtencionRepository:
         if consultant_id := filtros.get("consultor_id"):
             qs = qs.filter(consultants_rel__consultant_id=str(consultant_id))
         if consultant_ids := filtros.get("consultant_ids"):
-            qs = qs.filter(consultants_rel__consultant_id__in=[str(c) for c in consultant_ids])
+            qs = qs.filter(
+                consultants_rel__consultant_id__in=[str(c) for c in consultant_ids]
+            )
         qs = qs.order_by("-created_at")
         return [AtencionDTO.from_orm(a) for a in qs.distinct()]
 

@@ -1,13 +1,12 @@
 import pytest
 
 
-
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
 def test_filtrar_por_request_id(api_client_coordinador):
     from tests.factories.atencion_factory import AtencionFactory
 
-    at = AtencionFactory(request_id="ABC123")
+    AtencionFactory(request_id="ABC123")
 
     resp = api_client_coordinador.get("/api/atenciones/", {"request_id": "ABC123"})
     assert resp.status_code == 200
@@ -18,11 +17,13 @@ def test_filtrar_por_request_id(api_client_coordinador):
 
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
-def test_filtrar_por_cliente_nombre_resuelve_request_ids(monkeypatch, api_client_coordinador):
+def test_filtrar_por_cliente_nombre_resuelve_request_ids(
+    monkeypatch, api_client_coordinador
+):
     from tests.factories.atencion_factory import AtencionFactory
 
-    a1 = AtencionFactory(request_id="R1")
-    a2 = AtencionFactory(request_id="R2")
+    AtencionFactory(request_id="R1")
+    AtencionFactory(request_id="R2")
 
     # Mock the solicitudes lookup used by the service
     monkeypatch.setattr(
@@ -73,7 +74,9 @@ def test_filtrar_por_fecha_registro(api_client_coordinador):
     at = AtencionFactory()
     today = at.created_at.date()
 
-    resp = api_client_coordinador.get("/api/atenciones/", {"fecha_registro": today.isoformat()})
+    resp = api_client_coordinador.get(
+        "/api/atenciones/", {"fecha_registro": today.isoformat()}
+    )
     assert resp.status_code == 200
     data = resp.json()
     assert data["count"] >= 1
@@ -91,7 +94,9 @@ def test_filtrar_cliente_nombre_sin_resultados(monkeypatch, api_client_coordinad
         lambda nombre: [],
     )
 
-    resp = api_client_coordinador.get("/api/atenciones/", {"cliente_nombre": "NoExiste"})
+    resp = api_client_coordinador.get(
+        "/api/atenciones/", {"cliente_nombre": "NoExiste"}
+    )
     assert resp.status_code == 200
     data = resp.json()
     assert data["results"] == []
