@@ -1,3 +1,8 @@
+import os
+
+os.environ["CELERY_BROKER_URL"] = "memory://"
+os.environ["CELERY_RESULT_BACKEND"] = "cache+memory://"
+
 import pytest
 from django.core.cache import caches
 from django.contrib.auth.models import User
@@ -9,9 +14,10 @@ from atenciones.constants import Rol
 
 
 def _client_with_rol(rol: str) -> APIClient:
-    user = User.objects.create_user(
-        username=f"user_{rol.lower()}", password="testpass123"
-    )
+    import uuid
+
+    username = f"user_{rol.lower()}_{uuid.uuid4().hex[:8]}"
+    user = User.objects.create_user(username=username, password="testpass123")
     setattr(user, "rol", rol or "Cliente")
     client: Any = APIClient()
     client.force_authenticate(user=user)

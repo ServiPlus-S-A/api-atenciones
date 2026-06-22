@@ -10,7 +10,7 @@ from atenciones.exceptions.custom_exceptions import (
     TransicionInvalidaException,
 )
 from atenciones.validators.atencion_validators import (
-    validar_anticipacion_24h,
+    validar_no_anterior_fecha_actual,
     validar_bloques_30min,
     validar_cruce_horario,
     validar_estado_finalizacion,
@@ -21,16 +21,16 @@ from atenciones.validators.atencion_validators import (
 
 
 @pytest.mark.unit
-def test_anticipacion_exactamente_24h_pasa():
-    fecha = datetime.now(timezone.utc) + timedelta(hours=24, minutes=1)
-    validar_anticipacion_24h(fecha)
+def test_fecha_actual_y_futura_pasa():
+    fecha_futura = datetime.now(timezone.utc) + timedelta(minutes=5)
+    validar_no_anterior_fecha_actual(fecha_futura)
 
 
 @pytest.mark.unit
-def test_anticipacion_23h59m_falla():
-    fecha = datetime.now(timezone.utc) + timedelta(hours=23, minutes=59)
+def test_fecha_anterior_falla():
+    fecha_pasada = datetime.now(timezone.utc) - timedelta(minutes=5)
     with pytest.raises(AnticipacionInsuficiente):
-        validar_anticipacion_24h(fecha)
+        validar_no_anterior_fecha_actual(fecha_pasada)
 
 
 @pytest.mark.unit

@@ -30,7 +30,7 @@ from atenciones.tasks.notificacion_tasks import (
     enviar_notificacion_programacion,
 )
 from atenciones.validators.atencion_validators import (
-    validar_anticipacion_24h,
+    validar_no_anterior_fecha_actual,
     validar_bloques_30min,
     validar_cruce_horario,
     validar_estado_finalizacion,
@@ -158,7 +158,7 @@ class AtencionService:
             fecha_fin=data["fecha_fin"],
             programado_por_id=user.id,
         )
-        validar_anticipacion_24h(input_dto.fecha_programada)
+        validar_no_anterior_fecha_actual(input_dto.fecha_programada)
         validar_bloques_30min(input_dto.fecha_programada, input_dto.fecha_fin)
         atencion = AtencionRepository.obtener_por_id(atencion_id)
         validar_transicion_estado(atencion.estado, EstadoAtencion.AGENDADA)
@@ -174,6 +174,7 @@ class AtencionService:
         )
         dto = AtencionRepository.programar(input_dto)
         _invalidate_cache(user)
+        cache.delete(f"atencion_detalle:{dto.id}")
         AuditService.registrar(
             "PROGRAMAR",
             user.id,
@@ -200,6 +201,7 @@ class AtencionService:
         validar_transicion_a_finalizada(atencion.estado)
         dto = AtencionRepository.finalizar(input_dto)
         _invalidate_cache(user)
+        cache.delete(f"atencion_detalle:{dto.id}")
         AuditService.registrar(
             "FINALIZAR",
             user.id,
@@ -223,6 +225,7 @@ class AtencionService:
         validar_transicion_estado(atencion.estado, EstadoAtencion.ANULADA)
         dto = AtencionRepository.anular(input_dto)
         _invalidate_cache(user)
+        cache.delete(f"atencion_detalle:{dto.id}")
         AuditService.registrar(
             "ANULAR",
             user.id,
