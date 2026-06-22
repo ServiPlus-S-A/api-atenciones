@@ -180,7 +180,7 @@ def test_get_detalle_fallo_bd_retorna_503(mock_get_by_id, client):
 
     url = reverse("atencion-detail", kwargs={"pk": 1})
     response = client.get(
-        url, HTTP_X_USER_ID="coord-uuid-099", HTTP_X_USER_ROLE="COORDINADOR"
+        url, HTTP_X_USER_ID="coord-uuid-099", HTTP_X_USER_ROLE="COORDINADOR", HTTP_ACCEPT="application/json"
     )
 
     assert response.status_code == 503
