@@ -146,6 +146,9 @@ SUPABASE_STORAGE_BUCKET = os.environ.get("SUPABASE_STORAGE_BUCKET", "audit-archi
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
 SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")
 
+# Seguridad: deshabilitar autenticación mock por defecto
+ALLOW_MOCK_AUTH = False
+
 CLIENTES_SERVICE_URL = os.environ.get("CLIENTES_SERVICE_URL", "http://localhost:8002")
 CLIENTES_SERVICE_TIMEOUT = 2
 
