@@ -172,6 +172,7 @@ class AtencionService:
         )
         dto = AtencionRepository.programar(input_dto)
         _invalidate_cache(user)
+        cache.delete(f"atencion_detalle:{dto.id}")
         AuditService.registrar(
             "PROGRAMAR",
             user.id,
@@ -196,6 +197,7 @@ class AtencionService:
         validar_transicion_estado(atencion.estado, EstadoAtencion.FINALIZADA)
         dto = AtencionRepository.finalizar(input_dto)
         _invalidate_cache(user)
+        cache.delete(f"atencion_detalle:{dto.id}")
         AuditService.registrar(
             "FINALIZAR",
             user.id,
@@ -219,6 +221,7 @@ class AtencionService:
         validar_transicion_estado(atencion.estado, EstadoAtencion.ANULADA)
         dto = AtencionRepository.anular(input_dto)
         _invalidate_cache(user)
+        cache.delete(f"atencion_detalle:{dto.id}")
         AuditService.registrar(
             "ANULAR",
             user.id,
