@@ -1,7 +1,5 @@
 import pytest
-from datetime import datetime, timezone
 
-from atenciones.models import Atencion
 
 
 @pytest.mark.integration
@@ -71,7 +69,6 @@ def test_filtrar_por_consultor_nombre_resuelve_ids(monkeypatch, api_client_coord
 @pytest.mark.django_db(transaction=True)
 def test_filtrar_por_fecha_registro(api_client_coordinador):
     from tests.factories.atencion_factory import AtencionFactory
-    from datetime import date
 
     at = AtencionFactory()
     today = at.created_at.date()
