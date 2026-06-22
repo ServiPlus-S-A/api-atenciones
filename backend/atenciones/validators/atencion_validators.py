@@ -1,9 +1,17 @@
 from datetime import datetime, timedelta
 
-from atenciones.constants import ERR_ANTICIPATION, VALID_TRANSACTIONS
+from atenciones.constants import (
+    ERR_ANTICIPATION,
+    ERR_ESTADO_NO_PERMITIDO,
+    ERR_NOTAS_FINALES_CORTAS,
+    ERR_NOTAS_FINALES_LARGAS,
+    EstadoAtencion,
+    VALID_TRANSACTIONS,
+)
 from atenciones.exceptions.custom_exceptions import (
     AnticipacionInsuficiente,
     CruceHorarioException,
+    EstadoAtencionNoPermitidoException,
     TransicionInvalidaException,
 )
 
@@ -45,8 +53,22 @@ def validar_transicion_estado(estado_actual: str, nuevo_estado: str) -> None:
         raise TransicionInvalidaException()
 
 
-def validar_longitud_notas(notas_finales: str, minimo: int = 20) -> None:
-    if len(notas_finales.strip()) < minimo:
-        from atenciones.constants import ERR_MINIMUM_FINAL_NOTE
+def validar_estado_finalizacion(estado: str) -> None:
+    if estado != EstadoAtencion.FINALIZADA:
+        raise EstadoAtencionNoPermitidoException(ERR_ESTADO_NO_PERMITIDO)
 
-        raise TransicionInvalidaException(ERR_MINIMUM_FINAL_NOTE)
+
+def validar_transicion_a_finalizada(estado_actual: str) -> None:
+    permitidos = VALID_TRANSACTIONS.get(estado_actual, [])
+    if EstadoAtencion.FINALIZADA not in permitidos:
+        raise EstadoAtencionNoPermitidoException(ERR_ESTADO_NO_PERMITIDO)
+
+
+def validar_longitud_notas(
+    notas_finales: str, minimo: int = 20, maximo: int = 2000
+) -> None:
+    contenido = notas_finales.strip()
+    if len(contenido) < minimo:
+        raise EstadoAtencionNoPermitidoException(ERR_NOTAS_FINALES_CORTAS)
+    if len(notas_finales) > maximo:
+        raise EstadoAtencionNoPermitidoException(ERR_NOTAS_FINALES_LARGAS)
