@@ -103,11 +103,13 @@ def test_programar_finalizar_anular():
     dto_fin = AtencionRepository.finalizar(
         FinalizarAtencionInputDTO(
             atencion_id=atencion.pk,
+            estado=EstadoAtencion.FINALIZADA,
             notas_finales="Notas finales válidas con más de veinte caracteres.",
             consultor_id=1,
         ),
     )
     assert dto_fin.estado == EstadoAtencion.FINALIZADA
+    assert dto_fin.fecha_cierre is not None
 
     otra = AtencionFactory()
     dto_anul = AtencionRepository.anular(
