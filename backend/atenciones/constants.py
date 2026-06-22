@@ -36,6 +36,18 @@ ERR_SCHEDULE_OVERLAP = "Existe cruce de horario para uno o más consultores."
 ERR_MINIMUM_NOTE = "El contenido de la nota debe tener al menos 15 caracteres."
 ERR_MINIMUM_FINAL_NOTE = "Las notas finales deben tener al menos 20 caracteres."
 
+# HU finalizar atención: mensajes de error específicos
+ERR_NOTAS_FINALES_OBLIGATORIAS = (
+    "Las notas finales son obligatorias para el cierre y deben tener un mínimo de 20 caracteres"
+)
+ERR_NOTAS_FINALES_CORTAS = (
+    "Falta añadir las notas finales de la atención: la nota debe tener más de 20 caracteres"
+)
+ERR_NOTAS_FINALES_LARGAS = (
+    "El mensaje de notas finales es muy extenso: Por favor resumir el mensaje para continuar"
+)
+ERR_ESTADO_NO_PERMITIDO = "Estado de atención no permitido."
+
 # HU-02: mensajes de error específicos
 ERR_SOLICITUD_NO_AUTORIZADA = (
     "La solicitud ingresada no existe en el sistema o no está autorizada para atención."
