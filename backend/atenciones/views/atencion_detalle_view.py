@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -22,6 +23,10 @@ class AtencionDetalleView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
 
+    @extend_schema(
+        operation_id="atenciones_retrieve",
+        responses={200: AtencionDetalleCoordinadorOutputSerializer},
+    )
     def get(self, request, pk: int):
         user_id = request.headers.get("X-User-Id")
         user_role = request.headers.get("X-User-Role")
