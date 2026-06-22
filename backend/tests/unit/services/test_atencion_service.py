@@ -8,6 +8,7 @@ from atenciones.constants import EstadoAtencion
 from atenciones.exceptions.custom_exceptions import (
     AnticipacionInsuficiente,
     ConsultorNoDisponible,
+    EstadoAtencionNoPermitidoException,
     SolicitudNoAutorizada,
     TransicionInvalidaException,
 )
@@ -139,11 +140,35 @@ def test_finalizar_ok(mock_delay, api_client_consultor):
     )
     dto = AtencionService.finalizar(
         atencion.pk,
-        {"notas_finales": "Notas finales válidas con más de veinte caracteres."},
+        {
+            "estado": EstadoAtencion.FINALIZADA,
+            "notas_finales": "Notas finales válidas con más de veinte caracteres.",
+        },
         user,
     )
     assert dto.estado == EstadoAtencion.FINALIZADA
+    assert dto.fecha_cierre is not None
     mock_delay.assert_called_once()
+
+
+@pytest.mark.django_db
+@patch("atenciones.services.atencion_service.enviar_email_cliente.delay")
+def test_finalizar_ya_finalizada_bloqueada(mock_delay, api_client_consultor):
+    atencion = AtencionFinalizadaFactory()
+    user = api_client_consultor.test_user
+    AtentionConsultant.objects.create(
+        atention=atencion, consultant_id=user.id, is_leader=True
+    )
+    with pytest.raises(EstadoAtencionNoPermitidoException):
+        AtencionService.finalizar(
+            atencion.pk,
+            {
+                "estado": EstadoAtencion.FINALIZADA,
+                "notas_finales": "Notas finales válidas con más de veinte caracteres.",
+            },
+            user,
+        )
+    mock_delay.assert_not_called()
 
 
 @pytest.mark.django_db
