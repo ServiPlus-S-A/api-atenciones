@@ -30,7 +30,7 @@ class NotaSeguimientoRepository:
         """
         nota = (
             NotaSeguimiento.objects.filter(atention_id=atention_id)
-            .order_by("created_at")
+            .order_by("created_at", "id")
             .first()
         )
         if nota is None:
@@ -46,4 +46,5 @@ class NotaSeguimientoRepository:
         qs = NotaSeguimiento.objects.filter(atention_id=atention_id)
         if consultant_id is not None:
             qs = qs.filter(consultant_id=consultant_id)
+        qs = qs.order_by("-created_at", "-id")
         return [NotaSeguimientoDTO.from_orm(n) for n in qs]

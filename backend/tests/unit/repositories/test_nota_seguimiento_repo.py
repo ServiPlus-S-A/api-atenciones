@@ -57,3 +57,24 @@ def test_obtener_nota_inicial_no_mezcla_atenciones():
     assert nota_inicial is not None
     assert nota_inicial.id == nota1.id
     assert nota_inicial.content == "Nota Atencion 1"
+
+
+@pytest.mark.django_db
+@pytest.mark.unit
+def test_notas_con_igual_fecha_se_ordenan_por_id():
+    atencion = AtencionFactory()
+
+    with freeze_time("2026-06-20T10:00:00Z"):
+        nota_inicial = NotaSeguimiento.objects.create(
+            atention=atencion, consultant_id="1", content="Nota inicial"
+        )
+        nota_reciente = NotaSeguimiento.objects.create(
+            atention=atencion, consultant_id="2", content="Nota reciente"
+        )
+
+    diagnostico = NotaSeguimientoRepository.obtener_nota_inicial(atencion.id)
+    bitacora = NotaSeguimientoRepository.listar_por_atencion(atencion.id)
+
+    assert diagnostico is not None
+    assert diagnostico.id == nota_inicial.id
+    assert [nota.id for nota in bitacora] == [nota_reciente.id, nota_inicial.id]
