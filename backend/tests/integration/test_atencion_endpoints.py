@@ -7,7 +7,7 @@ from atenciones.models import Atencion
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
 def test_health_endpoint_retorna_healthy(client):
-    response = client.get("/health/")
+    response = client.get("/health/", HTTP_ACCEPT="application/json")
     assert response.status_code in (200, 503)
     assert "status" in response.json()
 

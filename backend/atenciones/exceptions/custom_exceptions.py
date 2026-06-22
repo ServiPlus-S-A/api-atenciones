@@ -93,3 +93,12 @@ class AtencionServiceUnavailableError(Exception):
     """Lanzada cuando hay fallos de base de datos o conexión de red interna."""
 
     pass
+
+
+class ConsultorNoAsignado(Exception):
+    """
+    HU-05 (CA-3): Lanzada cuando el consultor autenticado no está asignado
+    a la atención consultada. No se expone información de la atención.
+    """
+
+    pass
