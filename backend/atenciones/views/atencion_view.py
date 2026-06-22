@@ -126,7 +126,9 @@ class AtencionListCreateView(APIView):
 
     def initialize_request(self, request, *args, **kwargs):
         drf_request = super().initialize_request(request, *args, **kwargs)
-        _mock_user_if_unauthenticated(drf_request, default_id="1", default_rol="CONSULTOR")
+        _mock_user_if_unauthenticated(
+            drf_request, default_id="1", default_rol="CONSULTOR"
+        )
         return drf_request
 
     @extend_schema(operation_id="atenciones_list", responses={200: dict})
@@ -157,7 +159,9 @@ class AtencionDetailView(APIView):
 
     def initialize_request(self, request, *args, **kwargs):
         drf_request = super().initialize_request(request, *args, **kwargs)
-        _mock_user_if_unauthenticated(drf_request, default_id="1", default_rol="CONSULTOR")
+        _mock_user_if_unauthenticated(
+            drf_request, default_id="1", default_rol="CONSULTOR"
+        )
         return drf_request
 
     @extend_schema(
@@ -173,7 +177,9 @@ class AtencionProgramarView(APIView):
 
     def initialize_request(self, request, *args, **kwargs):
         drf_request = super().initialize_request(request, *args, **kwargs)
-        _mock_user_if_unauthenticated(drf_request, pk=kwargs.get("pk"), default_id="1", default_rol="CONSULTOR")
+        _mock_user_if_unauthenticated(
+            drf_request, pk=kwargs.get("pk"), default_id="1", default_rol="CONSULTOR"
+        )
         return drf_request
 
     @extend_schema(
@@ -217,7 +223,9 @@ class AtencionFinalizarView(APIView):
 
     def initialize_request(self, request, *args, **kwargs):
         drf_request = super().initialize_request(request, *args, **kwargs)
-        _mock_user_if_unauthenticated(drf_request, pk=kwargs.get("pk"), default_id="1", default_rol="CONSULTOR")
+        _mock_user_if_unauthenticated(
+            drf_request, pk=kwargs.get("pk"), default_id="1", default_rol="CONSULTOR"
+        )
         return drf_request
 
     @extend_schema(
@@ -242,7 +250,9 @@ class AtencionAnularView(APIView):
 
     def initialize_request(self, request, *args, **kwargs):
         drf_request = super().initialize_request(request, *args, **kwargs)
-        _mock_user_if_unauthenticated(drf_request, default_id="1", default_rol="COORDINADOR")
+        _mock_user_if_unauthenticated(
+            drf_request, default_id="1", default_rol="COORDINADOR"
+        )
         return drf_request
 
     @extend_schema(
