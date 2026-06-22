@@ -33,7 +33,9 @@ from atenciones.validators.atencion_validators import (
     validar_anticipacion_24h,
     validar_bloques_30min,
     validar_cruce_horario,
+    validar_estado_finalizacion,
     validar_longitud_notas,
+    validar_transicion_a_finalizada,
     validar_transicion_estado,
 )
 
@@ -188,12 +190,14 @@ class AtencionService:
     def finalizar(cls, atencion_id: int, data: dict, user) -> AtencionDTO:
         input_dto = FinalizarAtencionInputDTO(
             atencion_id=atencion_id,
+            estado=data["estado"],
             notas_finales=data["notas_finales"],
             consultor_id=user.id,
         )
+        validar_estado_finalizacion(input_dto.estado)
         validar_longitud_notas(input_dto.notas_finales)
         atencion = AtencionRepository.obtener_por_id(atencion_id)
-        validar_transicion_estado(atencion.estado, EstadoAtencion.FINALIZADA)
+        validar_transicion_a_finalizada(atencion.estado)
         dto = AtencionRepository.finalizar(input_dto)
         _invalidate_cache(user)
         AuditService.registrar(
