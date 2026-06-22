@@ -145,3 +145,6 @@ SOLICITUDES_HEALTH_URL = os.environ.get(
 SUPABASE_STORAGE_BUCKET = os.environ.get("SUPABASE_STORAGE_BUCKET", "audit-archives")
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
 SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")
+
+# Seguridad: deshabilitar autenticación mock por defecto
+ALLOW_MOCK_AUTH = False

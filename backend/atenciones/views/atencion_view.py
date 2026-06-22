@@ -65,6 +65,11 @@ def _mock_user_if_unauthenticated(
     query_atencion_id=None,
     query_consultor_id=None,
 ):
+    from django.conf import settings
+
+    if not getattr(settings, "ALLOW_MOCK_AUTH", False):
+        return
+
     if drf_request.user and drf_request.user.is_authenticated:
         return
 
