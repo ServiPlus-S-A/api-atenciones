@@ -35,7 +35,7 @@ class AtencionDetalleService:
         except AtencionNoEncontrada as exc:
             raise AtencionDoesNotExist() from exc
         except DBError as exc:
-            logger.error("Database error retrieving attention detail: %s", exc)
+            logger.exception("Database error retrieving attention detail")
             raise AtencionServiceUnavailableError() from exc
 
         try:
@@ -43,31 +43,15 @@ class AtencionDetalleService:
             diagnostico_inicial = nota_inicial.content if nota_inicial else None
             notas = NotaSeguimientoRepository.listar_por_atencion(atention_id)
         except DBError as exc:
-            logger.error("Database error retrieving attention notes: %s", exc)
+            logger.exception("Database error retrieving attention notes")
             raise AtencionServiceUnavailableError() from exc
 
         mensaje_bitacora = AtencionDetalleService._mensaje_bitacora_vacia(notas)
 
-        solicitud_nombre = None
-        client_id = None
-        try:
-            solicitud_dict = solicitudes_client.get_solicitud(
-                str(atencion.solicitud_id)
-            )
-            if solicitud_dict:
-                solicitud_nombre = solicitud_dict.get("nombre")
-                client_id = solicitud_dict.get("client_id")
-        except Exception as exc:
-            logger.warning("SolicitudesClient request failed: %s", exc)
-
-        cliente_nombre = None
-        if client_id:
-            try:
-                cliente_dict = clientes_client.get_contacto_cliente(str(client_id))
-                if cliente_dict:
-                    cliente_nombre = cliente_dict.get("nombre_completo")
-            except Exception as exc:
-                logger.warning("ClientesClient request failed: %s", exc)
+        solicitud_nombre, client_id = AtencionDetalleService._obtener_solicitud_info(
+            str(atencion.solicitud_id)
+        )
+        cliente_nombre = AtencionDetalleService._obtener_cliente_nombre(client_id)
 
         acciones_disponibles = AtencionDetalleService._calcular_acciones_disponibles(
             atencion.estado
@@ -106,3 +90,25 @@ class AtencionDetalleService:
         if status == "AGENDADA":
             return {"editar": True, "finalizar": True, "cancelar": True}
         return {"editar": False, "finalizar": False, "cancelar": False}
+
+    @staticmethod
+    def _obtener_solicitud_info(solicitud_id: str) -> tuple[str | None, str | None]:
+        try:
+            solicitud_dict = solicitudes_client.get_solicitud(solicitud_id)
+            if solicitud_dict:
+                return solicitud_dict.get("nombre"), solicitud_dict.get("client_id")
+        except Exception as exc:
+            logger.warning("SolicitudesClient request failed: %s", exc)
+        return None, None
+
+    @staticmethod
+    def _obtener_cliente_nombre(client_id: str | None) -> str | None:
+        if not client_id:
+            return None
+        try:
+            cliente_dict = clientes_client.get_contacto_cliente(str(client_id))
+            if cliente_dict:
+                return cliente_dict.get("nombre_completo")
+        except Exception as exc:
+            logger.warning("ClientesClient request failed: %s", exc)
+        return None

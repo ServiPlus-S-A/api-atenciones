@@ -68,9 +68,11 @@ class AtencionDetalleView(APIView):
         # ── Rama CONSULTOR (HU-05) ────────────────────────────────────────────
         if user_role == "CONSULTOR":
             try:
-                consultor_dto = AtencionDetalleConsultorService.obtener_detalle_consultor(
-                    atention_id=pk,
-                    consultant_id=user_id,
+                consultor_dto = (
+                    AtencionDetalleConsultorService.obtener_detalle_consultor(
+                        atention_id=pk,
+                        consultant_id=user_id,
+                    )
                 )
             except ConsultorNoAsignado:
                 return Response(
@@ -94,7 +96,9 @@ class AtencionDetalleView(APIView):
                     },
                     status=status.HTTP_503_SERVICE_UNAVAILABLE,
                 )
-            consultor_serializer = AtencionDetalleConsultorOutputSerializer(consultor_dto)
+            consultor_serializer = AtencionDetalleConsultorOutputSerializer(
+                consultor_dto
+            )
             return Response(consultor_serializer.data, status=status.HTTP_200_OK)
 
         # ── Otros roles (HU-08 pendiente) ────────────────────────────────────

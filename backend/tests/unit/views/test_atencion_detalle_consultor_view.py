@@ -30,23 +30,23 @@ factory = APIRequestFactory()
 
 def _make_dto(**overrides) -> AtencionDetalleConsultorDTO:
     """Retorna un DTO de consultor con valores por defecto, aplicando overrides."""
-    defaults = dict(
-        id=1,
-        request_id="sol-001",
-        solicitud_nombre="Solicitud 001",
-        scheduled_date=None,
-        closing_date=None,
-        status="AGENDADA",
-        diagnostico_inicial=None,
-        notas=[],
-        mensaje_bitacora="Esta atención no tiene notas de seguimiento registradas.",
-        acciones_disponibles={"editar": True, "finalizar": True, "cancelar": True},
-        contacto_nombre="Ana García",
-        contacto_telefono="3001234567",
-        contacto_correo="ana@test.com",
-        contacto_disponible=True,
-        contacto_error_msg=None,
-    )
+    defaults = {
+        "id": 1,
+        "request_id": "sol-001",
+        "solicitud_nombre": "Solicitud 001",
+        "scheduled_date": None,
+        "closing_date": None,
+        "status": "AGENDADA",
+        "diagnostico_inicial": None,
+        "notas": [],
+        "mensaje_bitacora": "Esta atención no tiene notas de seguimiento registradas.",
+        "acciones_disponibles": {"editar": True, "finalizar": True, "cancelar": True},
+        "contacto_nombre": "Ana García",
+        "contacto_telefono": "3001234567",
+        "contacto_correo": "ana@test.com",
+        "contacto_disponible": True,
+        "contacto_error_msg": None,
+    }
     defaults.update(overrides)
     return AtencionDetalleConsultorDTO(**defaults)
 

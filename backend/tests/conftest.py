@@ -17,7 +17,7 @@ def _client_with_rol(rol: str) -> APIClient:
     import uuid
 
     username = f"user_{rol.lower()}_{uuid.uuid4().hex[:8]}"
-    user = User.objects.create_user(username=username, password="testpass123")
+    user = User.objects.create_user(username=username)
     setattr(user, "rol", rol or "Cliente")
     client: Any = APIClient()
     client.force_authenticate(user=user)

@@ -61,7 +61,7 @@ class AtencionDetalleConsultorService:
         except AtencionNoEncontrada as exc:
             raise AtencionDoesNotExist() from exc
         except DBError as exc:
-            logger.error("Database error retrieving attention for consultor: %s", exc)
+            logger.exception("Database error retrieving attention for consultor")
             raise AtencionServiceUnavailableError() from exc
 
         # Obtener notas de seguimiento
@@ -72,7 +72,7 @@ class AtencionDetalleConsultorService:
                 NotaSeguimientoRepository.listar_por_atencion(atention_id)
             )
         except DBError as exc:
-            logger.error("Database error retrieving notes for consultor: %s", exc)
+            logger.exception("Database error retrieving notes for consultor")
             raise AtencionServiceUnavailableError() from exc
 
         mensaje_bitacora: str | None = (
