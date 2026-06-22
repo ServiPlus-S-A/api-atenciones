@@ -25,6 +25,12 @@ class TransicionInvalidaException(BaseAtencionException):
     default_detail = "Transición de estado no permitida."
 
 
+class EstadoAtencionNoPermitidoException(BaseAtencionException):
+    status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+    default_code = "estado_no_permitido"
+    default_detail = "Estado de atención no permitido."
+
+
 class SolicitudNoAutorizada(BaseAtencionException):
     # HU-02: 400 Bad Request (solicitud no existe o no está en estado PENDIENTE)
     status_code = status.HTTP_400_BAD_REQUEST
