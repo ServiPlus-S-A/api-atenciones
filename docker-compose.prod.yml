@@ -42,6 +42,8 @@ services:
     depends_on:
       redis-local:
         condition: service_healthy
+    healthcheck:
+      disable: true
     logging:
       driver: json-file
       options:
@@ -56,6 +58,8 @@ services:
     depends_on:
       redis-local:
         condition: service_healthy
+    healthcheck:
+      disable: true
     logging:
       driver: json-file
       options:

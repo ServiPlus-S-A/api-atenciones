@@ -81,3 +81,24 @@ class ParametrosFiltroInvalidos(BaseAtencionException):
     def __init__(self, field_errors: dict) -> None:
         self.field_errors = field_errors
         super().__init__(detail=self.default_detail)
+
+
+class AtencionDoesNotExist(Exception):
+    """Lanzada cuando una atención no existe en la base de datos."""
+
+    pass
+
+
+class AtencionServiceUnavailableError(Exception):
+    """Lanzada cuando hay fallos de base de datos o conexión de red interna."""
+
+    pass
+
+
+class ConsultorNoAsignado(Exception):
+    """
+    HU-05 (CA-3): Lanzada cuando el consultor autenticado no está asignado
+    a la atención consultada. No se expone información de la atención.
+    """
+
+    pass

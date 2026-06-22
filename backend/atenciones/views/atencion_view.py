@@ -57,6 +57,54 @@ def _get_mock_user(user_id, rol="CONSULTOR"):
     return FallbackMockUser(user_id, rol)
 
 
+def _mock_user_if_unauthenticated(
+    drf_request,
+    pk=None,
+    default_id="1",
+    default_rol="CONSULTOR",
+    query_atencion_id=None,
+    query_consultor_id=None,
+    allow_mock_auth=False,
+):
+    if not allow_mock_auth:
+        return
+
+    if drf_request.user and drf_request.user.is_authenticated:
+        return
+
+    # Caso 1: Buscar consultor asignado en la atención si se tiene el PK de la URL
+    if pk:
+        try:
+            atencion_obj = Atention.objects.get(pk=pk)
+            from atenciones.models import AtentionConsultant
+
+            first = AtentionConsultant.objects.filter(atention=atencion_obj).first()
+            mock_id = first.consultant_id if first else default_id
+            drf_request.user = _get_mock_user(mock_id, default_rol)
+            return
+        except Atention.DoesNotExist:
+            pass
+
+    # Caso 2: Verificar cruces por query params
+    if query_atencion_id or query_consultor_id:
+        mock_id = default_id
+        if query_atencion_id:
+            try:
+                atencion = Atention.objects.get(pk=query_atencion_id)
+                first = atencion.consultants_rel.first()
+                if first:
+                    mock_id = first.consultant_id
+            except Atention.DoesNotExist:
+                pass
+        elif query_consultor_id:
+            mock_id = query_consultor_id
+        drf_request.user = _get_mock_user(mock_id, default_rol)
+        return
+
+    # Caso 3: Fallback a mock estático
+    drf_request.user = _get_mock_user(default_id, default_rol)
+
+
 def _paginate(items: list, page: int, page_size: int) -> dict:
     start = (page - 1) * page_size
     end = start + page_size
@@ -80,10 +128,17 @@ class AtencionListCreateView(APIView):
             return [AllowAny()]
         return super().get_permissions()
 
-    def dispatch(self, request, *args, **kwargs):
-        if not request.user or not request.user.is_authenticated:
-            request.user = _get_mock_user("1", "CONSULTOR")
-        return super().dispatch(request, *args, **kwargs)
+    def initialize_request(self, request, *args, **kwargs):
+        from django.conf import settings
+
+        drf_request = super().initialize_request(request, *args, **kwargs)
+        _mock_user_if_unauthenticated(
+            drf_request,
+            default_id="1",
+            default_rol="CONSULTOR",
+            allow_mock_auth=settings.ALLOW_MOCK_AUTH,
+        )
+        return drf_request
 
     @extend_schema(operation_id="atenciones_list", responses={200: dict})
     def get(self, request):
@@ -111,10 +166,17 @@ class AtencionListCreateView(APIView):
 class AtencionDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def dispatch(self, request, *args, **kwargs):
-        if not request.user or not request.user.is_authenticated:
-            request.user = _get_mock_user("1", "CONSULTOR")
-        return super().dispatch(request, *args, **kwargs)
+    def initialize_request(self, request, *args, **kwargs):
+        from django.conf import settings
+
+        drf_request = super().initialize_request(request, *args, **kwargs)
+        _mock_user_if_unauthenticated(
+            drf_request,
+            default_id="1",
+            default_rol="CONSULTOR",
+            allow_mock_auth=settings.ALLOW_MOCK_AUTH,
+        )
+        return drf_request
 
     @extend_schema(
         operation_id="atenciones_retrieve", responses={200: AtencionOutputSerializer}
@@ -127,24 +189,18 @@ class AtencionDetailView(APIView):
 class AtencionProgramarView(APIView):
     permission_classes = [IsAuthenticated, IsOwnerConsultorOrCoordinador]
 
-    def dispatch(self, request, *args, **kwargs):
-        if not request.user or not request.user.is_authenticated:
-            pk = kwargs.get("pk")
-            if pk:
-                try:
-                    atencion_obj = Atention.objects.get(pk=pk)
-                    from atenciones.models import AtentionConsultant
+    def initialize_request(self, request, *args, **kwargs):
+        from django.conf import settings
 
-                    first_consultant = AtentionConsultant.objects.filter(
-                        atention=atencion_obj
-                    ).first()
-                    mock_id = (
-                        first_consultant.consultant_id if first_consultant else "1"
-                    )
-                    request.user = _get_mock_user(mock_id, "CONSULTOR")
-                except Atention.DoesNotExist:
-                    pass
-        return super().dispatch(request, *args, **kwargs)
+        drf_request = super().initialize_request(request, *args, **kwargs)
+        _mock_user_if_unauthenticated(
+            drf_request,
+            pk=kwargs.get("pk"),
+            default_id="1",
+            default_rol="CONSULTOR",
+            allow_mock_auth=settings.ALLOW_MOCK_AUTH,
+        )
+        return drf_request
 
     @extend_schema(
         summary="Programar/Reagendar fecha y hora de atención",
@@ -185,24 +241,18 @@ class AtencionProgramarView(APIView):
 class AtencionFinalizarView(APIView):
     permission_classes = [IsAuthenticated, IsConsultor, IsOwnerConsultorOrCoordinador]
 
-    def dispatch(self, request, *args, **kwargs):
-        if not request.user or not request.user.is_authenticated:
-            pk = kwargs.get("pk")
-            if pk:
-                try:
-                    atencion_obj = Atention.objects.get(pk=pk)
-                    from atenciones.models import AtentionConsultant
+    def initialize_request(self, request, *args, **kwargs):
+        from django.conf import settings
 
-                    first_consultant = AtentionConsultant.objects.filter(
-                        atention=atencion_obj
-                    ).first()
-                    mock_id = (
-                        first_consultant.consultant_id if first_consultant else "1"
-                    )
-                    request.user = _get_mock_user(mock_id, "CONSULTOR")
-                except Atention.DoesNotExist:
-                    pass
-        return super().dispatch(request, *args, **kwargs)
+        drf_request = super().initialize_request(request, *args, **kwargs)
+        _mock_user_if_unauthenticated(
+            drf_request,
+            pk=kwargs.get("pk"),
+            default_id="1",
+            default_rol="CONSULTOR",
+            allow_mock_auth=settings.ALLOW_MOCK_AUTH,
+        )
+        return drf_request
 
     @extend_schema(
         request=FinalizarAtencionInputSerializer,
@@ -224,10 +274,17 @@ class AtencionFinalizarView(APIView):
 class AtencionAnularView(APIView):
     permission_classes = [IsAuthenticated, IsCoordinador]
 
-    def dispatch(self, request, *args, **kwargs):
-        if not request.user or not request.user.is_authenticated:
-            request.user = _get_mock_user("1", "COORDINADOR")
-        return super().dispatch(request, *args, **kwargs)
+    def initialize_request(self, request, *args, **kwargs):
+        from django.conf import settings
+
+        drf_request = super().initialize_request(request, *args, **kwargs)
+        _mock_user_if_unauthenticated(
+            drf_request,
+            default_id="1",
+            default_rol="COORDINADOR",
+            allow_mock_auth=settings.ALLOW_MOCK_AUTH,
+        )
+        return drf_request
 
     @extend_schema(
         request=AnularAtencionInputSerializer, responses={200: AtencionOutputSerializer}
@@ -242,23 +299,19 @@ class AtencionAnularView(APIView):
 class AtencionVerificarCruceView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def dispatch(self, request, *args, **kwargs):
-        if not request.user or not request.user.is_authenticated:
-            atencion_id = request.GET.get("atencion_id")
-            consultor_id = request.GET.get("consultor_id")
-            mock_id = "1"
-            if atencion_id:
-                try:
-                    atencion = Atention.objects.get(pk=atencion_id)
-                    first = atencion.consultants_rel.first()
-                    if first:
-                        mock_id = first.consultant_id
-                except Atention.DoesNotExist:
-                    pass
-            elif consultor_id:
-                mock_id = consultor_id
-            request.user = _get_mock_user(mock_id, "CONSULTOR")
-        return super().dispatch(request, *args, **kwargs)
+    def initialize_request(self, request, *args, **kwargs):
+        from django.conf import settings
+
+        drf_request = super().initialize_request(request, *args, **kwargs)
+        _mock_user_if_unauthenticated(
+            drf_request,
+            query_atencion_id=drf_request.query_params.get("atencion_id"),
+            query_consultor_id=drf_request.query_params.get("consultor_id"),
+            default_id="1",
+            default_rol="CONSULTOR",
+            allow_mock_auth=settings.ALLOW_MOCK_AUTH,
+        )
+        return drf_request
 
     @extend_schema(
         parameters=[VerificarCruceInputSerializer],

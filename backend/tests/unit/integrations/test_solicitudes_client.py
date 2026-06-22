@@ -32,3 +32,19 @@ def test_get_retorna_info(mock_get):
 def test_get_fallback_desconocido(mock_get):
     info = SolicitudesClient().get(9)
     assert info.estado == "DESCONOCIDO"
+
+
+@pytest.mark.unit
+@override_settings(SOLICITUDES_MOCK_ENABLED=False)
+@patch(
+    "atenciones.integrations.base_client.requests.get",
+    side_effect=requests.RequestException("down"),
+)
+def test_get_solicitud_circuit_abre_tras_5_fallos_consecutivos(mock_get):
+    client = SolicitudesClient()
+
+    for _ in range(5):
+        assert client.get_solicitud("sol-1") is None
+
+    assert client.get_solicitud("sol-1") is None
+    assert mock_get.call_count == 5

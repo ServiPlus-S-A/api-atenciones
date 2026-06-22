@@ -103,11 +103,12 @@ jobs:
         run: python manage.py migrate --no-input
 
       - name: Tests (pytest)
-        run: pytest --no-cov
+        run: pytest --ds=config.settings.ci --no-cov
 
       - name: Cobertura (>= 80 %)
         run: |
           pytest \
+            --ds=config.settings.ci \
             --cov=atenciones \
             --cov=config \
             --cov-report=term-missing \

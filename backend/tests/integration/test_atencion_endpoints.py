@@ -7,7 +7,7 @@ from atenciones.models import Atencion
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
 def test_health_endpoint_retorna_healthy(client):
-    response = client.get("/health/")
+    response = client.get("/health/", HTTP_ACCEPT="application/json")
     assert response.status_code in (200, 503)
     assert "status" in response.json()
 
@@ -96,6 +96,10 @@ def test_detalle_atencion(api_client_coordinador):
     from tests.factories.atencion_factory import AtencionFactory
 
     atencion = AtencionFactory()
-    response = api_client_coordinador.get(f"/api/atenciones/{atencion.pk}/")
+    response = api_client_coordinador.get(
+        f"/api/atenciones/{atencion.pk}/",
+        HTTP_X_USER_ID="coord-uuid-099",
+        HTTP_X_USER_ROLE="COORDINADOR",
+    )
     assert response.status_code == 200
     assert response.json()["id"] == atencion.pk

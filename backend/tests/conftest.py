@@ -17,7 +17,7 @@ def _client_with_rol(rol: str) -> APIClient:
     import uuid
 
     username = f"user_{rol.lower()}_{uuid.uuid4().hex[:8]}"
-    user = User.objects.create_user(username=username, password="testpass123")
+    user = User.objects.create_user(username=username)
     setattr(user, "rol", rol or "Cliente")
     client: Any = APIClient()
     client.force_authenticate(user=user)
@@ -61,3 +61,16 @@ def isolated_test_cache(monkeypatch):
         yield test_cache
         test_cache.clear()
         caches.close_all()
+
+
+@pytest.fixture(autouse=True)
+def patch_django_test_client_python314_bug(monkeypatch):
+    """
+    Evita el renderizado de plantillas de error en Django durante los tests.
+    En Python 3.13/3.14 hay un bug con la copia del contexto de la plantilla
+    (Context.__copy__) cuando el logger de Django intenta renderizar el 500/503.
+    """
+    monkeypatch.setattr(
+        "django.views.debug.ExceptionReporter.get_traceback_text",
+        lambda self: "Mocked traceback to prevent Python 3.14 copy bug",
+    )

@@ -60,3 +60,6 @@ class DefaultMockDict(dict):
 
 SOLICITUDES_MOCK_RESPONSES = DefaultMockDict(MockSolicitud)
 PARAMETRIZACION_MOCK_RESPONSES = DefaultMockDict(MockConsultor)
+
+# Habilitar autenticación mock en desarrollo
+ALLOW_MOCK_AUTH = True
