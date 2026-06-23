@@ -23,15 +23,17 @@ if not _pooler_url:
         }
     }
 else:
+    _ssl = not _pooler_url.startswith("sqlite")
     DATABASES = {
         "default": dj_database_url.parse(
             _pooler_url,
             conn_max_age=0,
-            ssl_require=True,
+            ssl_require=_ssl,
         )
     }
-    DATABASES["default"].setdefault("OPTIONS", {})
-    DATABASES["default"]["OPTIONS"]["sslmode"] = "require"
+    if _ssl:
+        DATABASES["default"].setdefault("OPTIONS", {})
+        DATABASES["default"]["OPTIONS"]["sslmode"] = "require"
 
 # Cache en memoria local para tests (sin Redis)
 CACHES = {

@@ -4,7 +4,9 @@ import { useCallback, useEffect, useState } from "react";
 import * as service from "@/features/atenciones/services/atenciones.service";
 import type { AtencionDTO } from "@/types/atencion.types";
 
-export function useAtenciones(initialFiltros: Record<string, string | number> = {}) {
+const DEFAULT_FILTROS: Record<string, string | number> = {};
+
+export function useAtenciones(initialFiltros: Record<string, string | number> = DEFAULT_FILTROS) {
   const [atenciones, setAtenciones] = useState<AtencionDTO[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

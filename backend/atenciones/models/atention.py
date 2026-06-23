@@ -31,6 +31,9 @@ class Atention(models.Model):
     cancellation_reason: models.TextField[str | None, str | None] = models.TextField(
         null=True, blank=True
     )
+    customer_name: models.CharField[str | None, str | None] = models.CharField(
+        max_length=255, null=True, blank=True, db_index=True
+    )
     # HU-02: created_by es opcional mientras auth/RBAC no esté activo
     created_by: models.CharField[str | None, str | None] = models.CharField(
         max_length=128, null=True, blank=True
