@@ -20,3 +20,25 @@ class AtencionDetalleCoordinadorOutputSerializer(serializers.Serializer):
     notas = MonitoringNoteOutputSerializer(many=True)
     mensaje_bitacora = serializers.CharField(allow_null=True)
     acciones_disponibles = serializers.DictField(child=serializers.BooleanField())
+
+
+class ConsultorDetalleClienteOutputSerializer(serializers.Serializer):
+    id = serializers.CharField()
+    name = serializers.CharField()
+    is_leader = serializers.BooleanField()
+    role = serializers.CharField()
+
+
+class AtencionDetalleClienteOutputSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    request_id = serializers.CharField()
+    solicitud_nombre = serializers.CharField(allow_null=True)
+    consultores = ConsultorDetalleClienteOutputSerializer(many=True)
+    scheduled_date = serializers.DateTimeField(
+        allow_null=True,
+        format="%d/%m/%Y %H:%M",
+    )
+    status = serializers.CharField()
+    diagnostico_inicial = serializers.CharField(allow_null=True)
+    notas = MonitoringNoteOutputSerializer(many=True)
+    mensaje_bitacora = serializers.CharField(allow_null=True)
