@@ -8,6 +8,8 @@ from django.conf import settings
 
 from atenciones.integrations.base_client import BaseIntegrationClient
 
+from typing import Optional, Mapping, Any
+
 logger = logging.getLogger("atenciones.integrations.solicitudes")
 
 
@@ -29,6 +31,10 @@ SolicitudInfo = SolicitudInfoDTO
 
 class SolicitudesClient(BaseIntegrationClient):
     """Cliente del módulo de Solicitudes con Circuit Breaker."""
+
+    def get_solicitud(self, solicitud_id: int | str, params: Optional[Mapping[str, Any]] = None) -> dict:
+        path = f"/solicitudes/{solicitud_id}"
+        return self._get(path, params=params)
 
     def __init__(self):
         super().__init__(

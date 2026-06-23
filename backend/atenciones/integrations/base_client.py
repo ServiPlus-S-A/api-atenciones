@@ -2,6 +2,7 @@ import logging
 import time
 from dataclasses import dataclass
 from functools import wraps
+from typing import Any, Mapping, Optional
 
 import requests
 
@@ -44,11 +45,16 @@ class BaseIntegrationClient:
         self.base_url = base_url.rstrip("/")
         self.circuit = CircuitState()
 
-    def _get(self, path: str) -> dict:
+    def _get(self, path: str, params: Optional[Mapping[str, Any]] = None, **request_kwargs) -> dict:
         @circuit_breaker(self.circuit)
         def _request():
             url = f"{self.base_url}{path}"
-            response = requests.get(url, timeout=self.timeout)
+            response = requests.get(
+                url,
+                params=params,
+                timeout=self.timeout,
+                **request_kwargs,
+            )
             response.raise_for_status()
             return response.json()
 
