@@ -37,8 +37,8 @@ ERR_NOT_PENDING_REQUEST = "La solicitud no está en estado Pendiente."
 ERR_INVALID_TRANSACTION = "Transición de estado no permitida."
 ERR_ANTICIPATION = "No se permite seleccionar fechas anteriores a la fecha actual."
 ERR_SCHEDULE_OVERLAP = "Existe cruce de horario para uno o más consultores."
-ERR_MINIMUM_NOTE = "El contenido de la nota debe tener al menos 15 caracteres."
-ERR_MINIMUM_FINAL_NOTE = "Las notas finales deben tener al menos 20 caracteres."
+ERR_MINIMUM_NOTE = "La nota debe tener entre 10 y 1000 caracteres."
+ERR_NOTA_SEGUIMIENTO = "La nota debe tener entre 10 y 1000 caracteres."
 
 # HU-02: mensajes de error específicos
 ERR_SOLICITUD_NO_AUTORIZADA = (
