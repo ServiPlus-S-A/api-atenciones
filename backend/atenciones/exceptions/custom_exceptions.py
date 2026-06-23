@@ -99,3 +99,9 @@ class AtencionServiceUnavailableError(Exception):
     """Lanzada cuando hay fallos de base de datos o conexión de red interna."""
 
     pass
+
+
+class AtencionPermissionDenied(Exception):
+    """Lanzada cuando el usuario no puede consultar el detalle solicitado."""
+
+    pass
