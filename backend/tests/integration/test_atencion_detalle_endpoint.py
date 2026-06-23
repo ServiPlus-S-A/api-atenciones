@@ -1,10 +1,12 @@
 import pytest
 import time
 from unittest.mock import patch
+from datetime import datetime, timedelta, timezone
 from django.urls import reverse
 from django.db import Error as DBError
 
-from atenciones.models import NotaSeguimiento
+from atenciones.integrations.parametrizacion_client import ConsultorInfoDTO
+from atenciones.models import AtentionConsultant, NotaSeguimiento
 from tests.factories import (
     AtencionFactory,
     AtencionFinalizadaFactory,
@@ -87,13 +89,145 @@ def test_get_detalle_rol_consultor_retorna_403(client):
 
 @pytest.mark.django_db
 @pytest.mark.integration
-def test_get_detalle_rol_cliente_retorna_403(client):
+def test_get_detalle_rol_cliente_sin_solicitud_asociada_retorna_403(client):
     atencion = AtencionFactory()
     url = reverse("atencion-detail", kwargs={"pk": atencion.id})
     response = client.get(url, HTTP_X_USER_ID="cliente-1", HTTP_X_USER_ROLE="CLIENTE")
     assert response.status_code == 403
     assert response.json() == {
         "detail": "No tiene permisos para consultar el detalle de esta atención."
+    }
+
+
+@pytest.mark.django_db
+@pytest.mark.integration
+@patch(
+    "atenciones.services.atencion_detalle_service.parametrizacion_client.obtener_consultor"
+)
+@patch("atenciones.services.atencion_detalle_service.solicitudes_client.get_solicitud")
+def test_get_detalle_cliente_retorna_200_con_datos_solo_lectura(
+    mock_get_solicitud,
+    mock_obtener_consultor,
+    client,
+):
+    bogota_tz = timezone(timedelta(hours=-5))
+    atencion = AtencionFactory(
+        scheduled_date=datetime(2026, 7, 4, 14, 30, tzinfo=bogota_tz)
+    )
+    AtentionConsultant.objects.create(
+        atention=atencion,
+        consultant_id="consultor-1",
+        is_leader=True,
+    )
+    mock_get_solicitud.return_value = {
+        "id": str(atencion.request_id),
+        "estado": "PENDIENTE",
+        "client_id": "cliente-123",
+        "nombre": "Solicitud de soporte",
+    }
+    mock_obtener_consultor.return_value = ConsultorInfoDTO(
+        id="consultor-1",
+        disponible=True,
+        nombre="Ana Consultora",
+    )
+
+    NotaSeguimiento.objects.create(
+        atention=atencion,
+        consultant_id="consultor-1",
+        content="Diagnostico inicial del caso",
+    )
+    time.sleep(0.01)
+    NotaSeguimiento.objects.create(
+        atention=atencion,
+        consultant_id="consultor-1",
+        content="Seguimiento mas reciente",
+    )
+
+    url = reverse("atencion-detail", kwargs={"pk": atencion.id})
+    response = client.get(
+        url,
+        HTTP_X_USER_ID="cliente-123",
+        HTTP_X_USER_ROLE="CLIENTE",
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["id"] == atencion.id
+    assert data["request_id"] == str(atencion.request_id)
+    assert data["solicitud_nombre"] == "Solicitud de soporte"
+    assert data["consultores"] == [
+        {
+            "id": "consultor-1",
+            "name": "Ana Consultora",
+            "is_leader": True,
+            "role": "CONSULTOR",
+        }
+    ]
+    assert data["scheduled_date"] == "04/07/2026 14:30"
+    assert data["status"] == atencion.status
+    assert data["diagnostico_inicial"] == "Diagnostico inicial del caso"
+    assert data["notas"][0]["content"] == "Seguimiento mas reciente"
+    assert data["notas"][1]["content"] == "Diagnostico inicial del caso"
+    assert data["mensaje_bitacora"] is None
+    assert "acciones_disponibles" not in data
+
+
+@pytest.mark.django_db
+@pytest.mark.integration
+@patch(
+    "atenciones.services.atencion_detalle_service.parametrizacion_client.obtener_consultor"
+)
+@patch("atenciones.services.atencion_detalle_service.solicitudes_client.get_solicitud")
+def test_get_detalle_cliente_sin_notas_retorna_mensaje_bitacora(
+    mock_get_solicitud,
+    mock_obtener_consultor,
+    client,
+):
+    atencion = AtencionFactory()
+    mock_get_solicitud.return_value = {
+        "id": str(atencion.request_id),
+        "client_id": "cliente-123",
+        "nombre": "Solicitud sin notas",
+    }
+    mock_obtener_consultor.return_value = None
+
+    url = reverse("atencion-detail", kwargs={"pk": atencion.id})
+    response = client.get(
+        url,
+        HTTP_X_USER_ID="cliente-123",
+        HTTP_X_USER_ROLE="CLIENTE",
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["notas"] == []
+    assert data["diagnostico_inicial"] is None
+    assert (
+        data["mensaje_bitacora"]
+        == "Esta atención no tiene notas de seguimiento registradas."
+    )
+
+
+@pytest.mark.django_db
+@pytest.mark.integration
+@patch("atenciones.services.atencion_detalle_service.solicitudes_client.get_solicitud")
+def test_get_detalle_cliente_fallo_comunicacion_retorna_503(
+    mock_get_solicitud,
+    client,
+):
+    atencion = AtencionFactory()
+    mock_get_solicitud.side_effect = Exception("timeout")
+
+    url = reverse("atencion-detail", kwargs={"pk": atencion.id})
+    response = client.get(
+        url,
+        HTTP_X_USER_ID="cliente-123",
+        HTTP_X_USER_ROLE="CLIENTE",
+    )
+
+    assert response.status_code == 503
+    assert response.json() == {
+        "detail": "No fue posible cargar el detalle de la atención. Intente de nuevo más tarde."
     }
 
 
