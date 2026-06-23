@@ -48,10 +48,15 @@ class AtencionDetalleConsultorService:
             AtencionServiceUnavailableError: si hay error de base de datos.
         """
         # CA-3: verificar que el consultor está asignado a la atención
-        asignado = AtentionConsultant.objects.filter(
-            atention_id=atention_id,
-            consultant_id=str(consultant_id),
-        ).exists()
+        try:
+            asignado = AtentionConsultant.objects.filter(
+                atention_id=atention_id,
+                consultant_id=str(consultant_id),
+            ).exists()
+        except DBError as exc:
+            logger.exception("Database error validating consultant assignment")
+            raise AtencionServiceUnavailableError() from exc
+
         if not asignado:
             raise ConsultorNoAsignado()
 
