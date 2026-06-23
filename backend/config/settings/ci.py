@@ -7,7 +7,9 @@ import os
 
 import dj_database_url
 
-from .base import *  # noqa: F403
+from . import base
+
+globals().update({k: v for k, v in vars(base).items() if k.isupper()})
 
 DEBUG = True
 
