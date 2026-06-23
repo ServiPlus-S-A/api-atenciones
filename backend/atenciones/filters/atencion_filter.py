@@ -18,6 +18,14 @@ class AtencionFilterForm(forms.Form):
 
     solicitud_id = forms.IntegerField(required=False)
 
+    request_id = forms.CharField(required=False)
+
+    nombre_cliente = forms.CharField(required=False)
+
+    nombre_consultor = forms.CharField(required=False)
+
+    fecha_registro = forms.DateField(required=False)
+
     @classmethod
     def parse_query_params(cls, query_params) -> dict:
         form = cls(query_params)

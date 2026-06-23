@@ -15,3 +15,4 @@ class CrearAtencionInputDTO:
     consultor_ids: tuple[str, ...]
     mensaje_preliminar: str
     creado_por_id: str | None = None
+    cliente_nombre: str | None = None

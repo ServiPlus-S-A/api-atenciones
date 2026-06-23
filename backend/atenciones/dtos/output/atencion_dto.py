@@ -16,6 +16,8 @@ class AtentionDTO:
     fecha_cierre: datetime | None
     consultores: list[ConsultantRefDTO]
     motivo_anulacion: str | None = None
+    cliente_nombre: str | None = None
+    fecha_registro: datetime | None = None
 
     @classmethod
     def from_orm(
@@ -26,7 +28,8 @@ class AtentionDTO:
             ConsultantRefDTO(
                 id=str(rel.consultant_id),
                 name=nombres.get(
-                    str(rel.consultant_id), f"Consultant {rel.consultant_id}"
+                    str(rel.consultant_id),
+                    rel.consultant_name or f"Consultant {rel.consultant_id}",
                 ),
                 is_leader=rel.is_leader,
             )
@@ -42,6 +45,8 @@ class AtentionDTO:
             fecha_cierre=instancia.closing_date,
             consultores=consultants,
             motivo_anulacion=instancia.cancellation_reason,
+            cliente_nombre=instancia.customer_name,
+            fecha_registro=instancia.created_at,
         )
 
 

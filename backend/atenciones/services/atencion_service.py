@@ -21,6 +21,7 @@ from atenciones.exceptions.custom_exceptions import (
     SolicitudNoAutorizada,
 )
 from atenciones.integrations.parametrizacion_client import parametrizacion_client
+from atenciones.integrations.clientes_client import clientes_client
 from atenciones.integrations.solicitudes_client import solicitudes_client
 from atenciones.repositories.atencion_repository import AtencionRepository
 from atenciones.services.atencion_cache_service import AtencionCacheService
@@ -67,18 +68,9 @@ class AtencionService:
             else str(raw_actor_id or ACTOR_TECNICO_DEFAULT)
         )
 
-        input_dto = CrearAtencionInputDTO(
-            solicitud_id=str(data["solicitud_id"]),
-            consultor_ids=tuple(str(cid) for cid in data["consultor_ids"]),
-            mensaje_preliminar=data["mensaje_preliminar"],
-            creado_por_id=actor_id
-            if is_auth
-            else (str(raw_actor_id) if raw_actor_id else None),
-        )
-
         # 1. Validar solicitud fuera de transacción
         try:
-            solicitud = solicitudes_client.obtener_solicitud(input_dto.solicitud_id)
+            solicitud = solicitudes_client.obtener_solicitud(str(data["solicitud_id"]))
         except requests.RequestException:
             raise ServicioExternoNoDisponible()
 
@@ -92,6 +84,26 @@ class AtencionService:
             raise SolicitudNoAutorizada(
                 "La solicitud ingresada no existe en el sistema o no está autorizada para atención."
             )
+
+        cliente_nombre = None
+        if getattr(solicitud, "cliente_id", None):
+            try:
+                cliente = clientes_client.get_contacto_cliente(
+                    str(solicitud.cliente_id)
+                )
+                cliente_nombre = cliente.get("nombre_completo") if cliente else None
+            except requests.RequestException:
+                cliente_nombre = None
+
+        input_dto = CrearAtencionInputDTO(
+            solicitud_id=str(data["solicitud_id"]),
+            consultor_ids=tuple(str(cid) for cid in data["consultor_ids"]),
+            mensaje_preliminar=data["mensaje_preliminar"],
+            creado_por_id=actor_id
+            if is_auth
+            else (str(raw_actor_id) if raw_actor_id else None),
+            cliente_nombre=cliente_nombre,
+        )
 
         # 2. Validar consultores fuera de transacción
         consultores_info = []
