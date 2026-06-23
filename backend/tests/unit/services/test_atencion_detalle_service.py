@@ -4,8 +4,13 @@ from unittest.mock import patch
 from django.db import Error as DBError
 
 from atenciones.constants import EstadoAtencion
-from atenciones.exceptions import AtencionDoesNotExist, AtencionServiceUnavailableError
-from atenciones.models import NotaSeguimiento
+from atenciones.exceptions import (
+    AtencionDoesNotExist,
+    AtencionPermissionDenied,
+    AtencionServiceUnavailableError,
+)
+from atenciones.integrations.parametrizacion_client import ConsultorInfoDTO
+from atenciones.models import AtentionConsultant, NotaSeguimiento
 from atenciones.services.atencion_detalle_service import AtencionDetalleService
 from atenciones.repositories.atencion_repository import AtencionRepository
 from tests.factories import AtencionFactory
@@ -278,3 +283,74 @@ def test_respuesta_degradada_no_se_cachea(mock_get_contacto, mock_get_solicitud)
         assert mock_get_by_id.call_count == 2
         assert mock_get_solicitud.call_count == 2
         assert mock_get_contacto.call_count == 2
+
+
+@pytest.mark.django_db
+@pytest.mark.unit
+@patch(
+    "atenciones.services.atencion_detalle_service.parametrizacion_client.obtener_consultor"
+)
+@patch("atenciones.services.atencion_detalle_service.solicitudes_client.get_solicitud")
+def test_obtener_detalle_cliente_exitoso(
+    mock_get_solicitud,
+    mock_obtener_consultor,
+):
+    atencion = AtencionFactory()
+    AtentionConsultant.objects.create(
+        atention=atencion,
+        consultant_id="consultor-1",
+        is_leader=True,
+    )
+    mock_get_solicitud.return_value = {
+        "id": str(atencion.request_id),
+        "client_id": "cliente-123",
+        "nombre": "Solicitud Test",
+    }
+    mock_obtener_consultor.return_value = ConsultorInfoDTO(
+        id="consultor-1",
+        disponible=True,
+        nombre="Ana Consultora",
+    )
+    NotaSeguimiento.objects.create(
+        atention=atencion,
+        consultant_id="consultor-1",
+        content="Diagnostico inicial",
+    )
+
+    dto = AtencionDetalleService.obtener_detalle_cliente(atencion.id, "cliente-123")
+
+    assert dto.id == atencion.id
+    assert dto.request_id == str(atencion.request_id)
+    assert dto.solicitud_nombre == "Solicitud Test"
+    assert dto.consultores[0].name == "Ana Consultora"
+    assert dto.diagnostico_inicial == "Diagnostico inicial"
+    assert len(dto.notas) == 1
+    assert dto.mensaje_bitacora is None
+
+
+@pytest.mark.django_db
+@pytest.mark.unit
+@patch("atenciones.services.atencion_detalle_service.solicitudes_client.get_solicitud")
+def test_obtener_detalle_cliente_no_asociado_lanza_permiso(mock_get_solicitud):
+    atencion = AtencionFactory()
+    mock_get_solicitud.return_value = {
+        "id": str(atencion.request_id),
+        "client_id": "otro-cliente",
+        "nombre": "Solicitud Test",
+    }
+
+    with pytest.raises(AtencionPermissionDenied):
+        AtencionDetalleService.obtener_detalle_cliente(atencion.id, "cliente-123")
+
+
+@pytest.mark.django_db
+@pytest.mark.unit
+@patch("atenciones.services.atencion_detalle_service.solicitudes_client.get_solicitud")
+def test_obtener_detalle_cliente_solicitudes_no_disponible_lanza_503(
+    mock_get_solicitud,
+):
+    atencion = AtencionFactory()
+    mock_get_solicitud.return_value = None
+
+    with pytest.raises(AtencionServiceUnavailableError):
+        AtencionDetalleService.obtener_detalle_cliente(atencion.id, "cliente-123")
