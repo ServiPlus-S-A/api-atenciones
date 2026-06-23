@@ -8,6 +8,7 @@ from atenciones.exceptions.custom_exceptions import (
     SolicitudNoAutorizada,
     TransicionInvalidaException,
     AtencionDoesNotExist,
+    AtencionPermissionDenied,
     AtencionServiceUnavailableError,
 )
 
@@ -21,5 +22,6 @@ __all__ = [
     "ServicioExternoNoDisponible",
     "ParametrosFiltroInvalidos",
     "AtencionDoesNotExist",
+    "AtencionPermissionDenied",
     "AtencionServiceUnavailableError",
 ]
