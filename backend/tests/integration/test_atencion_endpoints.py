@@ -7,7 +7,7 @@ from atenciones.models import Atencion
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
 def test_health_endpoint_retorna_healthy(client):
-    response = client.get("/health/")
+    response = client.get("/health/", HTTP_ACCEPT="application/json")
     assert response.status_code in (200, 503)
     assert "status" in response.json()
 
@@ -88,6 +88,37 @@ def test_listar_filtro_estado_invalido_retorna_400(api_client_coordinador):
     response = api_client_coordinador.get("/api/atenciones/", {"estado": "NO_VALIDO"})
     assert response.status_code == 400
     assert response.json()["error"] == "parametros_filtro_invalidos"
+
+
+@pytest.mark.integration
+@pytest.mark.django_db(transaction=True)
+def test_listar_atenciones_con_filtros_hu12(api_client_coordinador):
+    from atenciones.models import AtentionConsultant
+    from tests.factories.atencion_factory import AtencionFactory
+
+    atencion = AtencionFactory(request_id=321, customer_name="Cliente Norte")
+    AtentionConsultant.objects.create(
+        atention=atencion,
+        consultant_id="consultor-1",
+        consultant_name="Maria Gomez",
+        is_leader=True,
+    )
+
+    response = api_client_coordinador.get(
+        "/api/atenciones/",
+        {
+            "solicitud_id": "321",
+            "nombre_cliente": "norte",
+            "nombre_consultor": "maria",
+            "fecha_registro": atencion.created_at.date().isoformat(),
+        },
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["count"] == 1
+    assert data["results"][0]["id"] == atencion.pk
+    assert data["results"][0]["customer_name"] == "Cliente Norte"
 
 
 @pytest.mark.integration

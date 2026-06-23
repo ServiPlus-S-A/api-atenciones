@@ -19,6 +19,8 @@ class AtencionOutputSerializer(serializers.Serializer):
     consultants = ConsultantRefOutputSerializer(many=True)
     final_note = serializers.CharField(allow_null=True)
     cancellation_reason = serializers.CharField(allow_null=True)
+    customer_name = serializers.CharField(allow_null=True)
+    created_at = serializers.DateTimeField()
 
     @classmethod
     def from_dto(cls, dto: AtencionDTO) -> dict:
@@ -42,5 +44,7 @@ class AtencionOutputSerializer(serializers.Serializer):
             "consultants": consultants_data,
             "final_note": dto.notas_finales if dto.estado == "FINALIZADA" else None,
             "cancellation_reason": dto.motivo_anulacion,
+            "customer_name": dto.cliente_nombre,
+            "created_at": dto.fecha_registro,
         }
         return data

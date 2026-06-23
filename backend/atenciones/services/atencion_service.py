@@ -21,6 +21,7 @@ from atenciones.exceptions.custom_exceptions import (
     SolicitudNoAutorizada,
 )
 from atenciones.integrations.parametrizacion_client import parametrizacion_client
+from atenciones.integrations.clientes_client import clientes_client
 from atenciones.integrations.solicitudes_client import solicitudes_client
 from atenciones.repositories.atencion_repository import AtencionRepository
 from atenciones.services.atencion_cache_service import AtencionCacheService
@@ -56,7 +57,7 @@ class AtencionService:
     @classmethod
     def _obtener_contexto_creacion(
         cls, data: dict, user=None
-    ) -> tuple[str, str, str, CrearAtencionInputDTO]:
+    ) -> tuple[str, str, str, str | None]:
         is_auth = user and hasattr(user, "is_authenticated") and user.is_authenticated
         raw_actor_id = data.get("creado_por_id")
 
@@ -73,13 +74,7 @@ class AtencionService:
             jwt_subject = fallback_id
             creado_por_id = str(raw_actor_id) if raw_actor_id else None
 
-        input_dto = CrearAtencionInputDTO(
-            solicitud_id=str(data["solicitud_id"]),
-            consultor_ids=tuple(str(cid) for cid in data["consultor_ids"]),
-            mensaje_preliminar=data["mensaje_preliminar"],
-            creado_por_id=creado_por_id,
-        )
-        return actor_id, actor_role, jwt_subject, input_dto
+        return actor_id, actor_role, jwt_subject, creado_por_id
 
     @classmethod
     def _validar_solicitud(cls, solicitud_id: str):
@@ -129,12 +124,31 @@ class AtencionService:
 
     @classmethod
     def crear(cls, data: dict, user=None) -> AtencionDTO:
-        actor_id, actor_role, jwt_subject, input_dto = cls._obtener_contexto_creacion(
-            data, user
+        actor_id, actor_role, jwt_subject, creado_por_id = (
+            cls._obtener_contexto_creacion(data, user)
         )
 
         # 1. Validar solicitud fuera de transacción
-        solicitud = cls._validar_solicitud(input_dto.solicitud_id)
+        solicitud = cls._validar_solicitud(str(data["solicitud_id"]))
+
+        # Obtener nombre del cliente a partir de la solicitud
+        cliente_nombre = None
+        if getattr(solicitud, "cliente_id", None):
+            try:
+                cliente = clientes_client.get_contacto_cliente(
+                    str(solicitud.cliente_id)
+                )
+                cliente_nombre = cliente.get("nombre_completo") if cliente else None
+            except requests.RequestException:
+                cliente_nombre = None
+
+        input_dto = CrearAtencionInputDTO(
+            solicitud_id=str(data["solicitud_id"]),
+            consultor_ids=tuple(str(cid) for cid in data["consultor_ids"]),
+            mensaje_preliminar=data["mensaje_preliminar"],
+            creado_por_id=creado_por_id,
+            cliente_nombre=cliente_nombre,
+        )
 
         # 2. Validar consultores fuera de transacción
         consultores_info = cls._validar_y_obtener_consultores(

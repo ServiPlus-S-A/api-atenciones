@@ -40,12 +40,21 @@ class AtencionRepository:
             qs = qs.exclude(status__in=estados_excluidos)
         if estado := filtros.get("estado"):
             qs = qs.filter(status=estado)
-        if request_id := filtros.get("request_id"):
+        if request_id := filtros.get("request_id") or filtros.get("solicitud_id"):
             qs = qs.filter(request_id=str(request_id))
+        if nombre_cliente := filtros.get("nombre_cliente"):
+            qs = qs.filter(customer_name__icontains=nombre_cliente)
+        if nombre_consultor := filtros.get("nombre_consultor"):
+            qs = qs.filter(
+                Q(consultants_rel__consultant_name__icontains=nombre_consultor)
+                | Q(consultants_rel__consultant_id__icontains=str(nombre_consultor))
+            )
         if fecha_inicio := filtros.get("fecha_inicio"):
             qs = qs.filter(scheduled_date__date__gte=fecha_inicio)
         if fecha_fin := filtros.get("fecha_fin"):
             qs = qs.filter(scheduled_date__date__lte=fecha_fin)
+        if fecha_registro := filtros.get("fecha_registro"):
+            qs = qs.filter(created_at__date=fecha_registro)
         if consultant_id := filtros.get("consultor_id"):
             qs = qs.filter(consultants_rel__consultant_id=str(consultant_id))
         qs = qs.order_by("-created_at")
@@ -61,11 +70,18 @@ class AtencionRepository:
             if input_dto.creado_por_id
             else None,
             status=EstadoAtencion.AGENDADA,
+            customer_name=getattr(input_dto, "cliente_nombre", None),
         )
         for i, consultor_id in enumerate(input_dto.consultor_ids):
+            consultant_name = None
+            for info in consultores_info or []:
+                if str(getattr(info, "id", "")) == str(consultor_id):
+                    consultant_name = getattr(info, "nombre", None)
+                    break
             AtentionConsultant.objects.create(
                 atention=atention,
                 consultant_id=str(consultor_id),
+                consultant_name=consultant_name,
                 is_leader=(i == 0),
             )
         if input_dto.mensaje_preliminar:
