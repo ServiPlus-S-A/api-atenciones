@@ -32,7 +32,9 @@ SolicitudInfo = SolicitudInfoDTO
 class SolicitudesClient(BaseIntegrationClient):
     """Cliente del módulo de Solicitudes con Circuit Breaker."""
 
-    def get_solicitud(self, solicitud_id: int | str, params: Optional[Mapping[str, Any]] = None) -> dict:
+    def get_solicitud(
+        self, solicitud_id: int | str, params: Optional[Mapping[str, Any]] = None
+    ) -> dict:
         path = f"/solicitudes/{solicitud_id}"
         return self._get(path, params=params)
 

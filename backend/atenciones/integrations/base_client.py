@@ -45,7 +45,9 @@ class BaseIntegrationClient:
         self.base_url = base_url.rstrip("/")
         self.circuit = CircuitState()
 
-    def _get(self, path: str, params: Optional[Mapping[str, Any]] = None, **request_kwargs) -> dict:
+    def _get(
+        self, path: str, params: Optional[Mapping[str, Any]] = None, **request_kwargs
+    ) -> dict:
         @circuit_breaker(self.circuit)
         def _request():
             url = f"{self.base_url}{path}"
