@@ -40,6 +40,8 @@ class MockConsultor:
         self.aptitudes = ()
         self.nombre = f"Consultor Mock {id}"
         self.role = "CONSULTOR"
+        self.rol = "CONSULTOR"
+        self.is_authenticated = True
 
 
 class DefaultMockDict(dict):
@@ -58,3 +60,6 @@ class DefaultMockDict(dict):
 
 SOLICITUDES_MOCK_RESPONSES = DefaultMockDict(MockSolicitud)
 PARAMETRIZACION_MOCK_RESPONSES = DefaultMockDict(MockConsultor)
+
+# Habilitar autenticación mock en desarrollo
+ALLOW_MOCK_AUTH = True

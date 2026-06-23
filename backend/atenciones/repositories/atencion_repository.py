@@ -48,6 +48,7 @@ class AtencionRepository:
             qs = qs.filter(scheduled_date__date__lte=fecha_fin)
         if consultant_id := filtros.get("consultor_id"):
             qs = qs.filter(consultants_rel__consultant_id=str(consultant_id))
+        qs = qs.order_by("-created_at")
         return [AtencionDTO.from_orm(a) for a in qs.distinct()]
 
     @classmethod

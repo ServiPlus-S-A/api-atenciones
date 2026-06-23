@@ -1,3 +1,4 @@
+from django.core.cache import cache
 from atenciones.audit.audit_service import AuditService
 from atenciones.constants import Rol
 from atenciones.dtos.output.nota_seguimiento_dto import NotaSeguimientoDTO
@@ -29,6 +30,7 @@ class NotaSeguimientoService:
                 content=contenido,
             ),
         )
+        cache.delete(f"atencion_detalle:{atencion_id}")
         AuditService.registrar(
             "AGREGAR_NOTA",
             user.id,
