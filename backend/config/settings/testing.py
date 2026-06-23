@@ -8,6 +8,7 @@ import os
 
 import dj_database_url
 
+from typing import Any
 from . import base
 
 globals().update({k: v for k, v in vars(base).items() if k.isupper()})
@@ -17,6 +18,7 @@ DEBUG = True
 # En tests NO se deben hardcodear credenciales.
 # Debes proveer DATABASE_URL vía entorno (idealmente apuntando al pooler :6543).
 _pooler_url = os.environ.get("DATABASE_URL")
+DATABASES: dict[str, Any]
 if not _pooler_url:
     DATABASES = {
         "default": {

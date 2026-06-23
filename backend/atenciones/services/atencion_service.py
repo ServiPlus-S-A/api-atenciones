@@ -60,6 +60,7 @@ class AtencionService:
         is_auth = user and hasattr(user, "is_authenticated") and user.is_authenticated
         raw_actor_id = data.get("creado_por_id")
 
+        creado_por_id: str | None
         if is_auth:
             actor_id = str(user.id)
             actor_role = getattr(user, "rol", Rol.CONSULTOR)
