@@ -48,3 +48,4 @@ def test_get_solicitud_circuit_abre_tras_5_fallos_consecutivos(mock_get):
 
     assert client.get_solicitud("sol-1") is None
     assert mock_get.call_count == 5
+    

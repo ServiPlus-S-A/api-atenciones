@@ -32,11 +32,18 @@ SolicitudInfo = SolicitudInfoDTO
 class SolicitudesClient(BaseIntegrationClient):
     """Cliente del módulo de Solicitudes con Circuit Breaker."""
 
-    def get_solicitud(
-        self, solicitud_id: int | str, params: Optional[Mapping[str, Any]] = None
-    ) -> dict:
-        path = f"/solicitudes/{solicitud_id}"
-        return self._get(path, params=params)
+    def get_solicitud(self, solicitud_id):
+        try:
+            if self.circuit_breaker.is_open():
+                return None
+            response = self.get(solicitud_id)
+            self.circuit_breaker.record_success()
+            return response
+        except requests.RequestException:
+            self.circuit_breaker.record_failure()
+            if self.circuit_breaker.is_open():
+                return None
+            return None  # Fallback on any request error
 
     def __init__(self):
         super().__init__(

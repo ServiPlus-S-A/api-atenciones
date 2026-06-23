@@ -6,7 +6,8 @@ from atenciones.exceptions.custom_exceptions import ParametrosFiltroInvalidos
 
 class AtencionFilterForm(forms.Form):
     """CONCERN-08: solo validador/parser de query params."""
-
+    
+    solicitud_id = forms.IntegerField(required=False)
     estado = forms.ChoiceField(
         choices=[(e.value, e.value) for e in EstadoAtencion],
         required=False,
@@ -34,5 +35,7 @@ class AtencionFilterForm(forms.Form):
             raise ParametrosFiltroInvalidos(
                 field_errors={k: list(v) for k, v in form.errors.items()}
             )
+    
 
         return form.cleaned_data
+        

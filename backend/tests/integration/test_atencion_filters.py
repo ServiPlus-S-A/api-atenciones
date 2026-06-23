@@ -70,17 +70,19 @@ def test_filtrar_por_consultor_nombre_resuelve_ids(monkeypatch, api_client_coord
 @pytest.mark.django_db(transaction=True)
 def test_filtrar_por_fecha_registro(api_client_coordinador):
     from tests.factories.atencion_factory import AtencionFactory
-
-    at = AtencionFactory()
-    today = at.created_at.date()
-
+    from django.utils import timezone
+    
+    today = timezone.now().date()
+    at = AtencionFactory(created_at=timezone.make_aware(
+        timezone.datetime.combine(today, timezone.datetime.min.time())
+    ))
+    
     resp = api_client_coordinador.get(
         "/api/atenciones/", {"fecha_registro": today.isoformat()}
     )
     assert resp.status_code == 200
     data = resp.json()
     assert data["count"] >= 1
-
 
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
