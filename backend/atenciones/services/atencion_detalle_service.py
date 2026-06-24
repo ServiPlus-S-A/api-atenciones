@@ -5,10 +5,8 @@ from django.db import Error as DBError
 
 from atenciones.dtos.output.consultor_ref_dto import ConsultantRefDTO
 from atenciones.dtos.output.atencion_detalle_coordinador_dto import (
-    AtencionDetalleCoordinadorDTO,
-)
-from atenciones.dtos.output_dtos import (
     AtencionDetalleClienteDTO,
+    AtencionDetalleCoordinadorDTO,
 )
 
 from atenciones.exceptions import (
