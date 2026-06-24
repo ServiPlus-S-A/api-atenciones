@@ -76,6 +76,8 @@ def test_listar_filtros_estado_y_request_id():
 
 @pytest.mark.django_db
 def test_listar_filtros_hu12_cliente_consultor_solicitud_y_fecha_registro():
+    from django.utils import timezone as dj_timezone
+
     atencion = AtencionFactory(request_id=123, customer_name="Ana Maria Rojas")
     AtentionConsultant.objects.create(
         atention=atencion,
@@ -90,7 +92,7 @@ def test_listar_filtros_hu12_cliente_consultor_solicitud_y_fecha_registro():
             "solicitud_id": 123,
             "nombre_cliente": "ana maria",
             "nombre_consultor": "luis",
-            "fecha_registro": atencion.created_at.date(),
+            "fecha_registro": dj_timezone.localdate(atencion.created_at),
         }
     )
 
