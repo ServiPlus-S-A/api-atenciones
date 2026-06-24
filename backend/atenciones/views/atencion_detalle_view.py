@@ -9,19 +9,26 @@ from atenciones.exceptions import (
     AtencionPermissionDenied,
     AtencionServiceUnavailableError,
 )
+from atenciones.exceptions.custom_exceptions import ConsultorNoAsignado
 from atenciones.serializers.output_serializers import (
     AtencionDetalleClienteOutputSerializer,
+    AtencionDetalleConsultorOutputSerializer,
     AtencionDetalleCoordinadorOutputSerializer,
 )
 from atenciones.services.atencion_detalle_service import AtencionDetalleService
+from atenciones.services.atencion_detalle_consultor_service import (
+    AtencionDetalleConsultorService,
+)
 
 
 class AtencionDetalleView(APIView):
     """
     GET /api/atenciones/{pk}/
 
-    Retorna el detalle completo de una atención.
-    Implementa las ramas COORDINADOR y CLIENTE.
+    Retorna el detalle completo de una atención según el rol del usuario:
+    - COORDINADOR: implementado en HU-19.
+    - CONSULTOR:   implementado en HU-05.
+    - CLIENTE:     implementado en HU-08.
     """
 
     authentication_classes = []
@@ -34,6 +41,7 @@ class AtencionDetalleView(APIView):
                 component_name="AtencionDetalleResponse",
                 serializers=[
                     AtencionDetalleCoordinadorOutputSerializer,
+                    AtencionDetalleConsultorOutputSerializer,
                     AtencionDetalleClienteOutputSerializer,
                 ],
                 resource_type_field_name=None,
@@ -52,6 +60,9 @@ class AtencionDetalleView(APIView):
 
         if user_role == "COORDINADOR":
             return self._get_coordinador(pk)
+
+        if user_role == "CONSULTOR":
+            return self._get_consultor(pk, user_id)
 
         if user_role == "CLIENTE":
             return self._get_cliente(pk, user_id)
@@ -86,6 +97,42 @@ class AtencionDetalleView(APIView):
 
         serializer = AtencionDetalleCoordinadorOutputSerializer(dto)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def _get_consultor(self, pk: int, user_id: str):
+        try:
+            consultor_dto = (
+                AtencionDetalleConsultorService.obtener_detalle_consultor(
+                    atention_id=pk,
+                    consultant_id=user_id,
+                )
+            )
+        except ConsultorNoAsignado:
+            return Response(
+                {
+                    "detail": "No tiene permisos para consultar el detalle de esta atención."
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        except AtencionDoesNotExist:
+            return Response(
+                {"detail": "Atención no encontrada."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        except AtencionServiceUnavailableError:
+            return Response(
+                {
+                    "detail": (
+                        "No fue posible cargar el detalle de la atención. "
+                        "Intente de nuevo más tarde."
+                    )
+                },
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        consultor_serializer = AtencionDetalleConsultorOutputSerializer(
+            consultor_dto
+        )
+        return Response(consultor_serializer.data, status=status.HTTP_200_OK)
 
     def _get_cliente(self, pk: int, user_id: str):
         try:

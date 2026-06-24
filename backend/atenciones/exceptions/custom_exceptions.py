@@ -101,6 +101,15 @@ class AtencionServiceUnavailableError(Exception):
     pass
 
 
+class ConsultorNoAsignado(Exception):
+    """
+    HU-05 (CA-3): Lanzada cuando el consultor autenticado no está asignado
+    a la atención consultada. No se expone información de la atención.
+    """
+
+    pass
+
+
 class AtencionPermissionDenied(Exception):
     """Lanzada cuando el usuario no puede consultar el detalle solicitado."""
 

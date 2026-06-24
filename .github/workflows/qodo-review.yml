@@ -27,8 +27,8 @@ jobs:
         run: |
           echo "Iniciando revisión en $PR_URL"
           
-          # 2. Ejecutar el comando 'review' (Análisis general y de seguridad)
-          pr-agent --pr_url=$PR_URL review
+          # 2. Ejecutar el comando 'review' con el modelo 4o-mini
+          pr-agent --pr_url=$PR_URL review --config.model="gpt-4o-mini"
           
-          # 3. Ejecutar el comando 'improve' (Sugerencias de refactorización y código)
-          pr-agent --pr_url=$PR_URL improve
+          # 3. Ejecutar el comando 'improve' con el modelo 4o-mini
+          pr-agent --pr_url=$PR_URL improve --config.model="gpt-4o-mini"
