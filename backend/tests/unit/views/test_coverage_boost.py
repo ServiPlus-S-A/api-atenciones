@@ -1,4 +1,5 @@
 """Tests mínimos para subir cobertura de atencion_view.py y atencion_service.py."""
+
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch, PropertyMock
 
@@ -19,9 +20,11 @@ from atenciones.services.atencion_service import AtencionService
 
 # ─── _get_mock_user / _mock_user_if_unauthenticated (atencion_view.py) ──────
 
+
 @pytest.mark.unit
 def test_get_mock_user_fallback():
     from atenciones.views.atencion_view import _get_mock_user
+
     with patch("atenciones.views.atencion_view.settings", create=True) as s:
         s.PARAMETRIZACION_MOCK_RESPONSES = None
         user = _get_mock_user("42", "COORDINADOR")
@@ -34,6 +37,7 @@ def test_get_mock_user_fallback():
 def test_get_mock_user_from_settings():
     from django.test import override_settings
     from atenciones.views.atencion_view import _get_mock_user
+
     mock_user = SimpleNamespace(id="99")
     with override_settings(PARAMETRIZACION_MOCK_RESPONSES={"7": mock_user}):
         user = _get_mock_user("7", "CONSULTOR")
@@ -45,6 +49,7 @@ def test_get_mock_user_from_settings():
 @pytest.mark.unit
 def test_mock_user_if_unauthenticated_disabled():
     from atenciones.views.atencion_view import _mock_user_if_unauthenticated
+
     req = MagicMock()
     _mock_user_if_unauthenticated(req, allow_mock_auth=False)
     # No debe modificar nada
@@ -54,6 +59,7 @@ def test_mock_user_if_unauthenticated_disabled():
 @pytest.mark.unit
 def test_mock_user_if_unauthenticated_already_authenticated():
     from atenciones.views.atencion_view import _mock_user_if_unauthenticated
+
     req = MagicMock()
     req.user.is_authenticated = True
     _mock_user_if_unauthenticated(req, allow_mock_auth=True)
@@ -62,6 +68,7 @@ def test_mock_user_if_unauthenticated_already_authenticated():
 @pytest.mark.unit
 def test_mock_user_if_unauthenticated_fallback_static():
     from atenciones.views.atencion_view import _mock_user_if_unauthenticated
+
     req = MagicMock()
     req.user = None
     with patch("atenciones.views.atencion_view.settings", create=True) as s:
@@ -90,7 +97,10 @@ def test_mock_user_if_unauthenticated_with_pk():
     with patch("atenciones.views.atencion_view.settings", create=True) as s:
         s.PARAMETRIZACION_MOCK_RESPONSES = None
         _mock_user_if_unauthenticated(
-            req, pk=atencion.pk, default_id="1", default_rol="CONSULTOR",
+            req,
+            pk=atencion.pk,
+            default_id="1",
+            default_rol="CONSULTOR",
             allow_mock_auth=True,
         )
     assert req.user.id == "cons-77"
@@ -106,7 +116,10 @@ def test_mock_user_if_unauthenticated_with_pk_not_found():
     with patch("atenciones.views.atencion_view.settings", create=True) as s:
         s.PARAMETRIZACION_MOCK_RESPONSES = None
         _mock_user_if_unauthenticated(
-            req, pk=999999, default_id="1", default_rol="CONSULTOR",
+            req,
+            pk=999999,
+            default_id="1",
+            default_rol="CONSULTOR",
             allow_mock_auth=True,
         )
     # Should fallback to static
@@ -130,8 +143,11 @@ def test_mock_user_if_unauthenticated_query_atencion_id():
     with patch("atenciones.views.atencion_view.settings", create=True) as s:
         s.PARAMETRIZACION_MOCK_RESPONSES = None
         _mock_user_if_unauthenticated(
-            req, query_atencion_id=atencion.pk,
-            default_id="1", default_rol="CONSULTOR", allow_mock_auth=True,
+            req,
+            query_atencion_id=atencion.pk,
+            default_id="1",
+            default_rol="CONSULTOR",
+            allow_mock_auth=True,
         )
     assert req.user.id == "cons-88"
 
@@ -145,13 +161,17 @@ def test_mock_user_if_unauthenticated_query_consultor_id():
     with patch("atenciones.views.atencion_view.settings", create=True) as s:
         s.PARAMETRIZACION_MOCK_RESPONSES = None
         _mock_user_if_unauthenticated(
-            req, query_consultor_id="cons-direct",
-            default_id="1", default_rol="CONSULTOR", allow_mock_auth=True,
+            req,
+            query_consultor_id="cons-direct",
+            default_id="1",
+            default_rol="CONSULTOR",
+            allow_mock_auth=True,
         )
     assert req.user.id == "cons-direct"
 
 
 # ─── AtencionService (atencion_service.py) ──────────────────────────────────
+
 
 @pytest.mark.unit
 @pytest.mark.django_db
@@ -181,8 +201,11 @@ def test_validar_solicitud_request_exception(mock_sol):
     mock_sol.side_effect = requests.RequestException("down")
     with pytest.raises(ServicioExternoNoDisponible):
         AtencionService.crear(
-            {"solicitud_id": "1", "consultor_ids": ["c-1"],
-             "mensaje_preliminar": "Mensaje preliminar de prueba."},
+            {
+                "solicitud_id": "1",
+                "consultor_ids": ["c-1"],
+                "mensaje_preliminar": "Mensaje preliminar de prueba.",
+            },
             user=None,
         )
 
@@ -195,8 +218,11 @@ def test_validar_solicitud_none(mock_sol):
     mock_sol.return_value = None
     with pytest.raises(SolicitudNoAutorizada):
         AtencionService.crear(
-            {"solicitud_id": "1", "consultor_ids": ["c-1"],
-             "mensaje_preliminar": "Mensaje preliminar de prueba."},
+            {
+                "solicitud_id": "1",
+                "consultor_ids": ["c-1"],
+                "mensaje_preliminar": "Mensaje preliminar de prueba.",
+            },
             user=None,
         )
 
@@ -211,8 +237,11 @@ def test_validar_consultores_request_exception(mock_param, mock_sol):
     mock_param.side_effect = requests.RequestException("down")
     with pytest.raises(ServicioExternoNoDisponible):
         AtencionService.crear(
-            {"solicitud_id": "1", "consultor_ids": ["c-1"],
-             "mensaje_preliminar": "Mensaje preliminar de prueba."},
+            {
+                "solicitud_id": "1",
+                "consultor_ids": ["c-1"],
+                "mensaje_preliminar": "Mensaje preliminar de prueba.",
+            },
             user=None,
         )
 
@@ -227,8 +256,11 @@ def test_validar_consultores_no_encontrado(mock_param, mock_sol):
     mock_param.return_value = None
     with pytest.raises(ConsultorNoEncontrado):
         AtencionService.crear(
-            {"solicitud_id": "1", "consultor_ids": ["c-1"],
-             "mensaje_preliminar": "Mensaje preliminar de prueba."},
+            {
+                "solicitud_id": "1",
+                "consultor_ids": ["c-1"],
+                "mensaje_preliminar": "Mensaje preliminar de prueba.",
+            },
             user=None,
         )
 
@@ -247,8 +279,11 @@ def test_validar_consultores_aptitud_incorrecta(mock_param, mock_sol):
     )
     with pytest.raises(ConsultorNoDisponible):
         AtencionService.crear(
-            {"solicitud_id": "1", "consultor_ids": ["c-1"],
-             "mensaje_preliminar": "Mensaje preliminar de prueba."},
+            {
+                "solicitud_id": "1",
+                "consultor_ids": ["c-1"],
+                "mensaje_preliminar": "Mensaje preliminar de prueba.",
+            },
             user=None,
         )
 
@@ -266,8 +301,11 @@ def test_crear_cliente_request_exception(mock_cli, mock_param, mock_sol):
     mock_param.return_value = ConsultorInfoDTO(id="c-1", disponible=True, aptitudes=())
     mock_cli.side_effect = requests.RequestException("down")
     dto = AtencionService.crear(
-        {"solicitud_id": "1", "consultor_ids": ["c-1"],
-         "mensaje_preliminar": "Mensaje preliminar de prueba."},
+        {
+            "solicitud_id": "1",
+            "consultor_ids": ["c-1"],
+            "mensaje_preliminar": "Mensaje preliminar de prueba.",
+        },
         user=None,
     )
     assert dto.cliente_nombre is None
@@ -278,6 +316,7 @@ def test_crear_cliente_request_exception(mock_cli, mock_param, mock_sol):
 def test_listar_para_usuario_rol_cliente():
     """Cubre línea 283: elif rol == Rol.CLIENTE."""
     from django.core.cache import cache
+
     user = SimpleNamespace(id=999, rol=Rol.CLIENTE, username="cli")
     cache.clear()
     result = AtencionService.listar_para_usuario(user, {})
@@ -286,6 +325,7 @@ def test_listar_para_usuario_rol_cliente():
 
 # ─── Tests adicionales para líneas faltantes ─────────────────────────────────
 
+
 @pytest.mark.unit
 def test_paginate_function():
     """Cubre líneas 109-114 de atencion_view.py."""
@@ -293,9 +333,14 @@ def test_paginate_function():
     from atenciones.dtos.output.atencion_dto import AtencionDTO
 
     dto = AtencionDTO(
-        id=1, estado=EstadoAtencion.AGENDADA, solicitud_id="1",
-        fecha_programada=None, fecha_fin=None, notas_finales=None,
-        fecha_cierre=None, consultores=[],
+        id=1,
+        estado=EstadoAtencion.AGENDADA,
+        solicitud_id="1",
+        fecha_programada=None,
+        fecha_fin=None,
+        notas_finales=None,
+        fecha_cierre=None,
+        consultores=[],
     )
     result = _paginate([dto], page=1, page_size=10)
     assert result["count"] == 1
@@ -315,8 +360,11 @@ def test_mock_user_query_atencion_id_not_found():
     with patch("atenciones.views.atencion_view.settings", create=True) as s:
         s.PARAMETRIZACION_MOCK_RESPONSES = None
         _mock_user_if_unauthenticated(
-            req, query_atencion_id=999999,
-            default_id="1", default_rol="CONSULTOR", allow_mock_auth=True,
+            req,
+            query_atencion_id=999999,
+            default_id="1",
+            default_rol="CONSULTOR",
+            allow_mock_auth=True,
         )
     assert req.user.id == "1"
 
@@ -329,8 +377,12 @@ def test_validar_solicitud_estado_desconocido(mock_sol):
     mock_sol.return_value = SolicitudInfoDTO(id="1", estado="DESCONOCIDO")
     with pytest.raises(ServicioExternoNoDisponible):
         AtencionService.crear(
-            {"solicitud_id": "1", "consultor_ids": ["c-1"],
-             "mensaje_preliminar": "Msg de prueba."}, user=None,
+            {
+                "solicitud_id": "1",
+                "consultor_ids": ["c-1"],
+                "mensaje_preliminar": "Msg de prueba.",
+            },
+            user=None,
         )
 
 
@@ -342,8 +394,12 @@ def test_validar_solicitud_estado_no_pendiente(mock_sol):
     mock_sol.return_value = SolicitudInfoDTO(id="1", estado="APROBADA")
     with pytest.raises(SolicitudNoAutorizada):
         AtencionService.crear(
-            {"solicitud_id": "1", "consultor_ids": ["c-1"],
-             "mensaje_preliminar": "Msg de prueba."}, user=None,
+            {
+                "solicitud_id": "1",
+                "consultor_ids": ["c-1"],
+                "mensaje_preliminar": "Msg de prueba.",
+            },
+            user=None,
         )
 
 
@@ -357,8 +413,12 @@ def test_validar_consultores_no_disponible(mock_param, mock_sol):
     mock_param.return_value = ConsultorInfoDTO(id="c-1", disponible=False, aptitudes=())
     with pytest.raises(ConsultorNoDisponible):
         AtencionService.crear(
-            {"solicitud_id": "1", "consultor_ids": ["c-1"],
-             "mensaje_preliminar": "Msg de prueba."}, user=None,
+            {
+                "solicitud_id": "1",
+                "consultor_ids": ["c-1"],
+                "mensaje_preliminar": "Msg de prueba.",
+            },
+            user=None,
         )
 
 
@@ -375,8 +435,11 @@ def test_crear_con_cliente_exitoso(mock_cli, mock_param, mock_sol):
     mock_param.return_value = ConsultorInfoDTO(id="c-1", disponible=True, aptitudes=())
     mock_cli.return_value = {"nombre_completo": "Juan Pérez"}
     dto = AtencionService.crear(
-        {"solicitud_id": "1", "consultor_ids": ["c-1"],
-         "mensaje_preliminar": "Msg de prueba."},
+        {
+            "solicitud_id": "1",
+            "consultor_ids": ["c-1"],
+            "mensaje_preliminar": "Msg de prueba.",
+        },
         user=None,
     )
     assert dto.cliente_nombre == "Juan Pérez"
@@ -387,6 +450,7 @@ def test_crear_con_cliente_exitoso(mock_cli, mock_param, mock_sol):
 def test_listar_para_usuario_rol_consultor():
     """Cubre líneas 280-281: rama CONSULTOR en listar_para_usuario."""
     from django.core.cache import cache
+
     user = SimpleNamespace(id=888, rol=Rol.CONSULTOR, username="cons")
     cache.clear()
     result = AtencionService.listar_para_usuario(user, {})
