@@ -19,7 +19,11 @@ from atenciones.dtos.output.atencion_detalle_consultor_dto import (
     NO_REGISTRADO,
     AtencionDetalleConsultorDTO,
 )
-from atenciones.exceptions import AtencionDoesNotExist, AtencionServiceUnavailableError
+from atenciones.exceptions import (
+    AtencionDoesNotExist,
+    AtencionPermissionDenied,
+    AtencionServiceUnavailableError,
+)
 from atenciones.exceptions.custom_exceptions import ConsultorNoAsignado
 from atenciones.views.atencion_detalle_view import AtencionDetalleView
 
@@ -148,11 +152,21 @@ def test_sin_cabeceras_retorna_401():
 
 
 @pytest.mark.unit
-def test_rol_cliente_retorna_403():
-    """Un usuario con rol CLIENTE no debe acceder a la rama CONSULTOR ni a COORDINADOR."""
+@patch(
+    "atenciones.views.atencion_detalle_view.AtencionDetalleConsultorService.obtener_detalle_consultor"
+)
+@patch(
+    "atenciones.views.atencion_detalle_view.AtencionDetalleService.obtener_detalle_cliente"
+)
+def test_rol_cliente_no_usa_rama_consultor(mock_cliente_service, mock_consultor_service):
+    """Un usuario CLIENTE debe resolverse por su rama y no por la de CONSULTOR."""
+    mock_cliente_service.side_effect = AtencionPermissionDenied()
+
     response = _get(pk=1, user_role="CLIENTE")
 
     assert response.status_code == 403
+    mock_cliente_service.assert_called_once_with(atention_id=1, cliente_id=CONSULTOR_ID)
+    mock_consultor_service.assert_not_called()
 
 
 # ─── Atención no encontrada ──────────────────────────────────────────────────
