@@ -111,8 +111,7 @@ jobs:
         run: |
           pytest \
             --ds=config.settings.ci \
-            --cov=atenciones \
-            --cov=config \
+            --cov=. \
             --cov-report=term-missing \
             --cov-report=xml \
             --cov-fail-under=80
