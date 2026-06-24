@@ -95,6 +95,7 @@ def test_listar_filtro_estado_invalido_retorna_400(api_client_coordinador):
 def test_listar_atenciones_con_filtros_hu12(api_client_coordinador):
     from atenciones.models import AtentionConsultant
     from tests.factories.atencion_factory import AtencionFactory
+    from django.utils import timezone as dj_timezone
 
     atencion = AtencionFactory(request_id=321, customer_name="Cliente Norte")
     AtentionConsultant.objects.create(
@@ -110,7 +111,7 @@ def test_listar_atenciones_con_filtros_hu12(api_client_coordinador):
             "solicitud_id": "321",
             "nombre_cliente": "norte",
             "nombre_consultor": "maria",
-            "fecha_registro": atencion.created_at.date().isoformat(),
+            "fecha_registro": dj_timezone.localdate(atencion.created_at).isoformat(),
         },
     )
 
