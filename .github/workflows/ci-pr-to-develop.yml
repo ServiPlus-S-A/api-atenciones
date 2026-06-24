@@ -120,6 +120,10 @@ jobs:
             --cov-report=xml \
             --cov-fail-under=80
 
+      - name: Corregir rutas en coverage.xml para SonarCloud (Docker)
+        run: |
+          sed -i "s|${{ github.workspace }}|/github/workspace|g" coverage.xml
+
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v3.0.0
         env:
