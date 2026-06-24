@@ -21,6 +21,7 @@ from atenciones.exceptions.custom_exceptions import (
     SolicitudNoAutorizada,
 )
 from atenciones.integrations.parametrizacion_client import parametrizacion_client
+from atenciones.integrations.clientes_client import clientes_client
 from atenciones.integrations.solicitudes_client import solicitudes_client
 from atenciones.repositories.atencion_repository import AtencionRepository
 from atenciones.services.atencion_cache_service import AtencionCacheService
@@ -56,31 +57,31 @@ class AtencionService:
         return str(getattr(user, "username", user.id))
 
     @classmethod
-    def crear(cls, data: dict, user=None) -> AtencionDTO:
+    def _obtener_contexto_creacion(
+        cls, data: dict, user=None
+    ) -> tuple[str, str, str, str | None]:
         is_auth = user and hasattr(user, "is_authenticated") and user.is_authenticated
         raw_actor_id = data.get("creado_por_id")
-        actor_id = (
-            str(user.id) if is_auth else str(raw_actor_id or ACTOR_TECNICO_DEFAULT)
-        )
-        actor_role = getattr(user, "rol", Rol.CONSULTOR) if is_auth else Rol.CONSULTOR
-        jwt_subject = (
-            cls._jwt_subject(user)
-            if is_auth
-            else str(raw_actor_id or ACTOR_TECNICO_DEFAULT)
-        )
 
-        input_dto = CrearAtencionInputDTO(
-            solicitud_id=str(data["solicitud_id"]),
-            consultor_ids=tuple(str(cid) for cid in data["consultor_ids"]),
-            mensaje_preliminar=data["mensaje_preliminar"],
-            creado_por_id=actor_id
-            if is_auth
-            else (str(raw_actor_id) if raw_actor_id else None),
-        )
+        creado_por_id: str | None
+        if is_auth:
+            actor_id = str(user.id)
+            actor_role = getattr(user, "rol", Rol.CONSULTOR)
+            jwt_subject = cls._jwt_subject(user)
+            creado_por_id = actor_id
+        else:
+            fallback_id = str(raw_actor_id or ACTOR_TECNICO_DEFAULT)
+            actor_id = fallback_id
+            actor_role = Rol.CONSULTOR
+            jwt_subject = fallback_id
+            creado_por_id = str(raw_actor_id) if raw_actor_id else None
 
-        # 1. Validar solicitud fuera de transacción
+        return actor_id, actor_role, jwt_subject, creado_por_id
+
+    @classmethod
+    def _validar_solicitud(cls, solicitud_id: str):
         try:
-            solicitud = solicitudes_client.obtener_solicitud(input_dto.solicitud_id)
+            solicitud = solicitudes_client.obtener_solicitud(solicitud_id)
         except requests.RequestException:
             raise ServicioExternoNoDisponible()
 
@@ -94,10 +95,14 @@ class AtencionService:
             raise SolicitudNoAutorizada(
                 "La solicitud ingresada no existe en el sistema o no está autorizada para atención."
             )
+        return solicitud
 
-        # 2. Validar consultores fuera de transacción
+    @classmethod
+    def _validar_y_obtener_consultores(
+        cls, consultor_ids: tuple[str, ...], solicitud
+    ) -> list:
         consultores_info = []
-        for cid in input_dto.consultor_ids:
+        for cid in consultor_ids:
             try:
                 info = parametrizacion_client.obtener_consultor(cid)
             except requests.RequestException:
@@ -117,6 +122,40 @@ class AtencionService:
                     f"Consultor {cid} no tiene la aptitud requerida para este servicio."
                 )
             consultores_info.append(info)
+        return consultores_info
+
+    @classmethod
+    def crear(cls, data: dict, user=None) -> AtencionDTO:
+        actor_id, actor_role, jwt_subject, creado_por_id = (
+            cls._obtener_contexto_creacion(data, user)
+        )
+
+        # 1. Validar solicitud fuera de transacción
+        solicitud = cls._validar_solicitud(str(data["solicitud_id"]))
+
+        # Obtener nombre del cliente a partir de la solicitud
+        cliente_nombre = None
+        if getattr(solicitud, "cliente_id", None):
+            try:
+                cliente = clientes_client.get_contacto_cliente(
+                    str(solicitud.cliente_id)
+                )
+                cliente_nombre = cliente.get("nombre_completo") if cliente else None
+            except requests.RequestException:
+                cliente_nombre = None
+
+        input_dto = CrearAtencionInputDTO(
+            solicitud_id=str(data["solicitud_id"]),
+            consultor_ids=tuple(str(cid) for cid in data["consultor_ids"]),
+            mensaje_preliminar=data["mensaje_preliminar"],
+            creado_por_id=creado_por_id,
+            cliente_nombre=cliente_nombre,
+        )
+
+        # 2. Validar consultores fuera de transacción
+        consultores_info = cls._validar_y_obtener_consultores(
+            input_dto.consultor_ids, solicitud
+        )
 
         # 3. Persistencia atómica
         with transaction.atomic():

@@ -6,10 +6,19 @@ from atenciones.filters.atencion_filter import AtencionFilterForm
 
 def test_parse_query_params_returns_cleaned_data():
     data = AtencionFilterForm.parse_query_params(
-        {"estado": "AGENDADA", "solicitud_id": "42"}
+        {
+            "estado": "AGENDADA",
+            "solicitud_id": "42",
+            "nombre_cliente": "Ana",
+            "nombre_consultor": "Luis",
+            "fecha_registro": "2026-06-23",
+        }
     )
     assert data["estado"] == "AGENDADA"
     assert data["solicitud_id"] == 42
+    assert data["nombre_cliente"] == "Ana"
+    assert data["nombre_consultor"] == "Luis"
+    assert data["fecha_registro"].isoformat() == "2026-06-23"
 
 
 def test_parse_query_params_raises_on_invalid_estado():

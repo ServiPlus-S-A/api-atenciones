@@ -93,6 +93,38 @@ def test_listar_filtro_estado_invalido_retorna_400(api_client_coordinador):
 
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
+def test_listar_atenciones_con_filtros_hu12(api_client_coordinador):
+    from atenciones.models import AtentionConsultant
+    from tests.factories.atencion_factory import AtencionFactory
+    from django.utils import timezone as dj_timezone
+
+    atencion = AtencionFactory(request_id=321, customer_name="Cliente Norte")
+    AtentionConsultant.objects.create(
+        atention=atencion,
+        consultant_id="consultor-1",
+        consultant_name="Maria Gomez",
+        is_leader=True,
+    )
+
+    response = api_client_coordinador.get(
+        "/api/atenciones/",
+        {
+            "solicitud_id": "321",
+            "nombre_cliente": "norte",
+            "nombre_consultor": "maria",
+            "fecha_registro": dj_timezone.localdate(atencion.created_at).isoformat(),
+        },
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["count"] == 1
+    assert data["results"][0]["id"] == atencion.pk
+    assert data["results"][0]["customer_name"] == "Cliente Norte"
+
+
+@pytest.mark.integration
+@pytest.mark.django_db(transaction=True)
 def test_detalle_atencion(api_client_coordinador):
     from tests.factories.atencion_factory import AtencionFactory
 

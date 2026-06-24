@@ -15,6 +15,9 @@ class AtentionConsultant(models.Model):
     )
     # HU-02: consultant_id es UUID string del módulo de Parametrización externo
     consultant_id: models.CharField[str, str] = models.CharField(max_length=64)
+    consultant_name: models.CharField[str | None, str | None] = models.CharField(
+        max_length=255, null=True, blank=True, db_index=True
+    )
     is_leader: models.BooleanField[bool, bool] = models.BooleanField(default=False)
 
     class Meta:

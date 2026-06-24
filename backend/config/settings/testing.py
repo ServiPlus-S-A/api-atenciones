@@ -8,13 +8,17 @@ import os
 
 import dj_database_url
 
-from .base import *  # noqa: F403
+from typing import Any
+from . import base
+
+globals().update({k: v for k, v in vars(base).items() if k.isupper()})
 
 DEBUG = True
 
 # En tests NO se deben hardcodear credenciales.
 # Debes proveer DATABASE_URL vía entorno (idealmente apuntando al pooler :6543).
 _pooler_url = os.environ.get("DATABASE_URL")
+DATABASES: dict[str, Any]
 if not _pooler_url:
     DATABASES = {
         "default": {
@@ -23,15 +27,17 @@ if not _pooler_url:
         }
     }
 else:
+    _ssl = not _pooler_url.startswith("sqlite")
     DATABASES = {
         "default": dj_database_url.parse(
             _pooler_url,
             conn_max_age=0,
-            ssl_require=True,
+            ssl_require=_ssl,
         )
     }
-    DATABASES["default"].setdefault("OPTIONS", {})
-    DATABASES["default"]["OPTIONS"]["sslmode"] = "require"
+    if _ssl:
+        DATABASES["default"].setdefault("OPTIONS", {})
+        DATABASES["default"]["OPTIONS"]["sslmode"] = "require"
 
 # Cache en memoria local para tests (sin Redis)
 CACHES = {
