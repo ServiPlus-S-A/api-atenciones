@@ -1,7 +1,7 @@
 """Tests mínimos para subir cobertura de atencion_view.py y atencion_service.py."""
 
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch, PropertyMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 import requests
